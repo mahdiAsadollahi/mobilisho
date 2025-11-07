@@ -24,7 +24,7 @@ const BannerSection2 = () => {
   ];
 
   return (
-    <div className="container text-[#1B1F22] flex flex-col md:flex-row justify-between items-center gap-3 my-10">
+    <div className="container mb-28 text-[#1B1F22] flex flex-col md:flex-row justify-between items-center gap-3 my-10">
       {banners.map((banner) => (
         <a
           key={banner.id}

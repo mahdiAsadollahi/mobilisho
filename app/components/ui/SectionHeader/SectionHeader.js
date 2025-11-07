@@ -1,7 +1,13 @@
 // components/ui/SectionHeader/SectionHeader.js
 "use client";
 
-import { FaMobileAlt, FaGift, FaStar, FaArrowLeft } from "react-icons/fa";
+import {
+  FaMobileAlt,
+  FaGift,
+  FaStar,
+  FaArrowLeft,
+  FaBlog,
+} from "react-icons/fa";
 
 const SectionHeader = ({
   title = "پیشنهادات ویژه",
@@ -15,6 +21,8 @@ const SectionHeader = ({
         return <FaMobileAlt className="text-xl" />;
       case "star":
         return <FaStar className="text-xl" />;
+      case "blog":
+        return <FaBlog className="text-xl" />;
       case "gift":
       default:
         return <FaGift className="text-xl" />;

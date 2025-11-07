@@ -5,6 +5,7 @@ import SpecialOffers from "@/app/components/sections/SpecialOffers/SpecialOffers
 import BannerSection from "@/app/components/BannerSection/BannerSection ";
 import NewProducts from "@/app/components/sections/NewProducts";
 import BannerSection2 from "@/app/components/BannerSection2/BannerSection2";
+import BlogSection from "@/app/components/sections/BlogSection/BlogSection";
 
 function page() {
   const customProducts = [
@@ -114,6 +115,7 @@ function page() {
       <BannerSection />
       <NewProducts />
       <BannerSection2 />
+      <BlogSection/>
     </div>
   );
 }

@@ -1,12 +1,9 @@
 // components/ui/Slider/Slider.js
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation } from "swiper/modules";
 import "swiper/css";
-import "swiper/css/navigation";
-import { FaChevronRight, FaChevronLeft } from "react-icons/fa";
 
 const Slider = ({
   products = [],
@@ -14,18 +11,7 @@ const Slider = ({
   className = "",
   slidesPerView = "auto",
 }) => {
-  const prevRef = useRef(null);
-  const nextRef = useRef(null);
   const swiperRef = useRef(null);
-
-  useEffect(() => {
-    if (swiperRef.current) {
-      swiperRef.current.params.navigation.prevEl = prevRef.current;
-      swiperRef.current.params.navigation.nextEl = nextRef.current;
-      swiperRef.current.navigation.init();
-      swiperRef.current.navigation.update();
-    }
-  }, []);
 
   return (
     <div className={`curselCards relative ${className}`}>
@@ -50,11 +36,6 @@ const Slider = ({
         <div className="max-w-full relative max-md:hidden">
           <Swiper
             dir="rtl"
-            modules={[Navigation]}
-            navigation={{
-              prevEl: prevRef.current,
-              nextEl: nextRef.current,
-            }}
             spaceBetween={12}
             slidesPerView={slidesPerView}
             className="mySwiper"
@@ -68,20 +49,6 @@ const Slider = ({
               </SwiperSlide>
             ))}
           </Swiper>
-
-          {/* Navigation buttons */}
-          <button
-            ref={prevRef}
-            className="hidden md:flex absolute -left-6 z-10 top-2/4 -translate-y-1/2 hover:bg-[#f7f8fa] hover:text-black text-black backdrop-blur-lg rounded-xl shadow px-2 py-[20px] transition-all"
-          >
-            <FaChevronRight size={20} />
-          </button>
-          <button
-            ref={nextRef}
-            className="hidden md:flex absolute -right-6 z-10 top-2/4 -translate-y-1/2 hover:bg-[#f7f8fa] hover:text-black text-black backdrop-blur-lg rounded-xl shadow px-2 py-[20px] transition-all"
-          >
-            <FaChevronLeft size={20} />
-          </button>
         </div>
       </div>
     </div>

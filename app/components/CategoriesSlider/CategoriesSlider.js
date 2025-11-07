@@ -2,38 +2,13 @@
 "use client";
 
 import { forwardRef, useRef } from "react";
-import { IoIosArrowBack } from "react-icons/io";
 import CategoryCard from "../CategoryCard/CategoryCard";
 
 const CategoriesSlider = forwardRef(({ categories }, ref) => {
   const scrollContainerRef = useRef(null);
 
-  const scroll = (direction) => {
-    if (scrollContainerRef.current) {
-      const scrollAmount = 300;
-      const newScrollLeft =
-        scrollContainerRef.current.scrollLeft +
-        (direction === "left" ? -scrollAmount : scrollAmount);
-
-      scrollContainerRef.current.scrollTo({
-        left: newScrollLeft,
-        behavior: "smooth",
-      });
-    }
-  };
-
   return (
     <div className="flex items-center justify-center relative">
-      {/* دکمه اسکرول به چپ */}
-      <button
-        type="button"
-        className="hidden md:flex absolute -left-6 z-10 top-2/4 -translate-y-1/2 hover:bg-[#f7f8fa] hover:text-black text-black backdrop-blur-lg rounded-xl shadow px-2 py-5 transition-all"
-        aria-label="اسکرول به چپ"
-        onClick={() => scroll("left")}
-      >
-        <IoIosArrowBack size={26} />
-      </button>
-
       {/* کانتینر اسکرول */}
       <div
         ref={scrollContainerRef}
@@ -44,16 +19,6 @@ const CategoriesSlider = forwardRef(({ categories }, ref) => {
           <CategoryCard key={category.id} category={category} />
         ))}
       </div>
-
-      {/* دکمه اسکرول به راست */}
-      <button
-        type="button"
-        className="hidden md:flex absolute -right-6 z-10 top-2/4 -translate-y-1/2 hover:bg-[#f7f8fa] hover:text-black text-black backdrop-blur-lg rounded-xl shadow px-2 py-5 transition-all"
-        aria-label="اسکرول به راست"
-        onClick={() => scroll("right")}
-      >
-        <IoIosArrowBack size={26} className="rotate-180" />
-      </button>
     </div>
   );
 });

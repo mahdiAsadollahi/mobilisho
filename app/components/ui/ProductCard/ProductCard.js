@@ -52,7 +52,7 @@ const ProductCard = ({ product, className = "" }) => {
         </h3>
 
         {/* قیمت و اطلاعات */}
-        <div className="flex flex-col absolute bottom-4 left-3 right-3">
+        <div className="flex flex-col absolute bottom-5 left-5">
           {/* قیمت با تخفیف */}
           {hasDiscount && (
             <div className="flex flex-row-reverse gap-2 items-center mb-1">

@@ -2,23 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import {
-  FaStar,
-  FaTruck,
-  FaHeart,
-  FaRegHeart,
-  FaFire,
-  FaBolt,
-  FaShieldAlt,
-  FaCrown,
-} from "react-icons/fa";
-import {
-  IoDiamondOutline,
-  IoBagCheckOutline,
-  IoFlashOutline,
-} from "react-icons/io5";
-import { GiPriceTag, GiThreeLeaves } from "react-icons/gi";
-import TomanIcon from "../TomanIcon/TomanIcon";
+import { FaStar } from "react-icons/fa";
 
 const ProductCard = ({ product, className = "" }) => {
   const formatPrice = (price) => {
@@ -30,171 +14,108 @@ const ProductCard = ({ product, className = "" }) => {
 
   return (
     <div
-      className={`group bg-white snap-start relative rounded-3xl max-w-[301px] min-w-[268.9px] max-h-[388px] max-md:max-h-[330px] max-md:min-w-[190px] p-4 border border-gray-100 hover:border-primary/30 hover:shadow-xl transition-all duration-300 cursor-pointer max-md:max-w-[240px] ${className}`}
+      className={`bg-white snap-start relative rounded-[24px] max-w-[301px] min-w-[268.9px] max-h-[388px] max-md:max-h-[330px] max-md:min-w-[190px] px-4 pt-2 pb-0 border border-gray-200 hover:border-gray-300 transition-all cursor-pointer max-md:max-w-[240px] ${className}`}
     >
       <Link href={product.href} className="block h-full">
         {/* تصویر محصول */}
         <div className="relative">
           <div className="w-full flex justify-center items-center">
-            <div className="aspect-square overflow-hidden rounded-2xl w-[200px] bg-gray-50 group-hover:bg-gray-100 transition-colors duration-300">
+            <div className="aspect-square overflow-hidden rounded-[18px] w-[200px]">
               <img
                 loading="lazy"
                 src={product.image}
                 alt={product.name}
-                className="object-cover object-center w-full h-full mix-blend-multiply rounded-2xl group-hover:scale-105 transition-transform duration-300"
+                className="object-cover object-center w-full h-full mix-blend-multiply rounded-[18px]"
               />
             </div>
           </div>
 
           {/* ریتینگ */}
-          <div className="absolute left-2 top-2 flex items-start">
-            <div className="flex gap-1 flex-row-reverse rounded-xl px-2 py-1 items-center justify-center bg-white/90 backdrop-blur-sm shadow-sm">
-              <FaStar className="text-yellow-400 fill-current" size={14} />
-              <div className="text-[13px] font-medium text-gray-700">
+          <div className="absolute left-0 top-0 flex items-start">
+            <div className="flex gap-1 flex-row-reverse rounded-xl p-1 items-center justify-center opacity-90">
+              <FaStar className="text-yellow-500 fill-current" size={14} />
+              <div className="text-[16px] rounded-full">
                 {product.rating || 0}
               </div>
             </div>
           </div>
-
-          {/* آیکون ارسال رایگان */}
-          {product.freeShipping && (
-            <div className="absolute right-2 top-2 flex items-start">
-              <div className="flex gap-1 flex-row-reverse rounded-xl px-2 py-1 items-center justify-center bg-green-500 text-white shadow-sm">
-                <FaTruck size={12} />
-                <span className="text-[10px] font-medium">رایگان</span>
-              </div>
-            </div>
-          )}
-
-          {/* آیکون گارانتی */}
-          {product.warranty && (
-            <div className="absolute left-2 bottom-2 flex items-start">
-              <div className="flex gap-1 flex-row-reverse rounded-xl px-2 py-1 items-center justify-center bg-blue-500 text-white shadow-sm">
-                <FaShieldAlt size={12} />
-                <span className="text-[10px] font-medium">
-                  {product.warranty}
-                </span>
-              </div>
-            </div>
-          )}
-
-          {/* آیکون علاقه‌مندی */}
-          <button
-            className="absolute right-2 bottom-2 flex items-center justify-center w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full shadow-sm hover:bg-red-50 hover:text-red-500 transition-all duration-200 opacity-0 group-hover:opacity-100"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              // Handle add to wishlist
-            }}
-          >
-            <FaRegHeart
-              size={14}
-              className="text-gray-400 group-hover:text-red-500 transition-colors"
-            />
-          </button>
         </div>
 
         {/* عنوان محصول */}
-        <h3 className="text-sm md:text-[15px] text-gray-800 mt-4 mb-16 h-[60px] text-right overflow-hidden leading-6 font-medium line-clamp-2">
+        <h3 className="text-sm md:text-[16px] text-black mt-4 mb-[72px] h-[75px] text-right md:hidden">
+          {product.name.length > 40
+            ? `${product.name.substring(0, 40)}...`
+            : product.name}
+        </h3>
+        <h3 className="text-sm md:text-[16px] text-black mt-4 mb-[72px] h-[75px] text-right max-md:hidden">
           {product.name}
         </h3>
 
         {/* قیمت و اطلاعات */}
-        <div className="absolute bottom-4 left-4 right-4">
+        <div className="flex flex-col absolute bottom-4 left-3 right-3">
           {/* قیمت با تخفیف */}
           {hasDiscount && (
-            <div className="flex justify-between items-center mb-2">
-              <div className="flex items-center gap-2">
-                <GiPriceTag className="text-gray-400 text-lg" />
-                <span className="line-through text-gray-400 text-sm font-medium">
-                  {formatPrice(product.originalPrice)}
-                </span>
-              </div>
-              <div className="flex items-center gap-1 text-xs bg-gradient-to-r from-primary to-primary/90 text-white px-3 py-1 rounded-full font-medium shadow-sm">
-                <IoFlashOutline size={12} />
-                {product.discount}% تخفیف
+            <div className="flex flex-row-reverse gap-2 items-center mb-1">
+              <span className="line-through font-bold text-primary text-sm">
+                {formatPrice(product.originalPrice)}
+              </span>
+              <div className="text-xs bg-primary text-white bg-red-500 font-bold p-[4px_11px_2px] flex flex-row-reverse items-center gap-1 rounded-[40px]">
+                {product.discount}
+                <span>%</span>
               </div>
             </div>
           )}
 
           {/* قیمت اصلی */}
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <span className="text-gray-900 font-bold text-[16px] flex items-center gap-1">
-                {formatPrice(product.price)}
-                <TomanIcon />
-              </span>
-
-              {/* برچسب پرفروش */}
-              {product.isBestSeller && (
-                <div className="flex items-center gap-1 text-[10px] bg-orange-500 text-white px-2 py-1 rounded-full font-medium">
-                  <FaFire size={10} />
-                  پرفروش
-                </div>
-              )}
-
-              {/* برچسب جدید */}
-              {product.isNew && (
-                <div className="flex items-center gap-1 text-[10px] bg-green-500 text-white px-2 py-1 rounded-full font-medium">
-                  <GiThreeLeaves size={10} />
-                  جدید
-                </div>
-              )}
-
-              {/* برچسب ویژه */}
-              {product.isSpecial && (
-                <div className="flex items-center gap-1 text-[10px] bg-purple-500 text-white px-2 py-1 rounded-full font-medium">
-                  <FaCrown size={10} />
-                  ویژه
-                </div>
-              )}
-            </div>
-
-            {/* موجودی */}
-            <div
-              className={`flex items-center gap-1 text-[11px] px-2 py-1 rounded-full font-medium ${
-                product.inStock
-                  ? "bg-green-100 text-green-700"
-                  : "bg-red-100 text-red-700"
-              }`}
-            >
-              {product.inStock ? (
-                <>
-                  <IoBagCheckOutline size={12} />
-                  موجود
-                </>
-              ) : (
-                <>
-                  <FaBolt size={12} />
-                  ناموجود
-                </>
-              )}
-            </div>
+          <div className="flex gap-2 items-center">
+            <span className="text-gray-900 w-full justify-end font-bold text-[15px] flex gap-2 items-center">
+              {formatPrice(product.price)}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="16"
+                viewBox="0 0 22 18"
+                fill="none"
+              >
+                <g clipPath="url(#clip0_181_1123)">
+                  <g>
+                    <g>
+                      <path
+                        d="M16.8984 0.750259H14.5224C14.1425 0.750259 13.8346 1.05819 13.8346 1.43805C13.8346 1.8179 14.1425 2.12583 14.5224 2.12583H16.8984C17.2782 2.12583 17.5862 1.8179 17.5862 1.43805C17.5862 1.05819 17.2782 0.750259 16.8984 0.750259Z"
+                        fill="#8f9bad"
+                      ></path>
+                      <path
+                        d="M21.2474 3.81424C21.2265 3.43908 21.164 2.94669 21.0598 2.33706C20.999 1.98275 20.9365 1.65014 20.8722 1.33925C20.8002 0.991882 20.4528 0.776514 20.1106 0.866829C19.7945 0.950197 19.5983 1.26456 19.6625 1.58414C19.7268 1.90372 19.7876 2.2233 19.8484 2.56372C19.9474 3.11603 20.0073 3.54329 20.0281 3.8455C20.049 4.22066 19.9369 4.51245 19.6921 4.72087C19.4472 4.92929 19.0225 5.0335 18.4181 5.0335H6.67273V3.47035C6.67273 2.8034 6.55289 2.21201 6.31321 1.69617C6.07353 1.18033 5.72963 0.776514 5.28153 0.484725C4.83343 0.192937 4.31237 0.0470428 3.71838 0.0470428C3.15564 0.0470428 2.65283 0.198148 2.20993 0.500357C1.76704 0.802566 1.42315 1.2142 1.17825 1.73525C0.93336 2.2563 0.810913 2.83466 0.810913 3.47035C0.810913 4.40824 1.07925 5.13771 1.61594 5.65876C2.15262 6.17981 2.85864 6.44034 3.73401 6.44034H5.42221V6.53412C5.42221 6.78423 5.32321 6.98223 5.12521 7.12812C4.92721 7.27402 4.63543 7.39907 4.24985 7.50328C3.86427 7.60749 3.21817 7.75338 2.31154 7.94096L2.2907 7.9453C1.91641 8.01999 1.67673 8.3882 1.76009 8.76075C1.84086 9.12201 2.19517 9.35214 2.5573 9.28006C2.70493 9.25054 2.8517 9.22101 2.99933 9.19148C3.9789 8.99348 4.7214 8.79548 5.22682 8.59749C5.73224 8.39949 6.09958 8.14157 6.32884 7.82373C6.5581 7.50588 6.67273 7.07602 6.67273 6.53412V6.44034H18.4181C19.0538 6.44034 19.5878 6.31528 20.0203 6.06518C20.4528 5.81507 20.7706 5.48942 20.9738 5.08821C21.177 4.687 21.2682 4.26234 21.2474 3.81424ZM5.45347 5.0335H3.73401C3.14001 5.0335 2.70754 4.91626 2.43659 4.68179C2.16565 4.44732 2.03017 4.0435 2.03017 3.47035C2.03017 2.85551 2.17867 2.36311 2.47567 1.99317C2.77267 1.62322 3.1869 1.43825 3.71838 1.43825C4.29153 1.43825 4.724 1.61801 5.01579 1.97754C5.30758 2.33706 5.45347 2.83466 5.45347 3.47035V5.0335Z"
+                        fill="#8f9bad"
+                      ></path>
+                      <path
+                        d="M6.23507 12.8413C6.23507 12.4097 5.88515 12.0597 5.4535 12.0597C5.02184 12.0597 4.67192 12.4097 4.67192 12.8413C4.67192 13.273 5.02184 13.6229 5.4535 13.6229C5.88515 13.6229 6.23507 13.273 6.23507 12.8413Z"
+                        fill="#8f9bad"
+                      ></path>
+                      <path
+                        d="M20.7724 12.3489C20.5432 11.8123 20.2201 11.3859 19.8033 11.0672C19.3864 10.7493 18.9071 10.5904 18.3652 10.5904C17.6878 10.5904 17.1094 10.8231 16.6301 11.286C16.1507 11.7497 15.7964 12.388 15.5671 13.2009L15.0669 14.9985C15.0148 15.2173 14.9132 15.3815 14.7621 15.4909C14.611 15.6003 14.4104 15.655 14.1603 15.655C13.6913 15.655 13.3553 15.6064 13.152 15.5065C12.9488 15.4075 12.8134 15.233 12.7456 14.9829C12.6779 14.7328 12.644 14.3263 12.644 13.7636L12.6284 9.74629C12.6284 9.3503 12.5607 9.00206 12.4252 8.69898C12.2897 8.39677 12.0761 8.15969 11.7843 7.98775C11.4925 7.8158 11.1226 7.72983 10.6744 7.72983H10.1586C9.70008 7.72983 9.32232 7.8158 9.02532 7.98775C8.72832 8.15969 8.51469 8.39417 8.38443 8.69117C8.25417 8.98817 8.18904 9.33987 8.18904 9.74629L8.20467 14.1075C8.20467 14.7119 8.1213 15.1887 7.95456 15.5378C7.78783 15.8877 7.50646 16.1422 7.11046 16.3037C6.71446 16.4661 6.16215 16.546 5.45352 16.546H5.226C4.57989 16.546 4.04842 16.4114 3.63158 16.1396C3.21474 15.8686 2.90732 15.497 2.70932 15.0219C2.51132 14.5478 2.41232 14.0041 2.41232 13.3884C2.41232 13.1705 2.44619 12.8743 2.48787 12.593C2.54953 12.1744 2.18306 11.8192 1.76622 11.8922C1.49874 11.939 1.29467 12.1544 1.25819 12.4236C1.21477 12.7406 1.19306 13.0619 1.19306 13.3884C1.19306 14.1804 1.34677 14.9264 1.65419 15.6237C1.96161 16.322 2.41753 16.8847 3.02195 17.312C3.62637 17.7401 4.36105 17.9528 5.226 17.9528H5.45352C6.38099 17.9528 7.13912 17.7965 7.72791 17.4839C8.31669 17.1713 8.74917 16.7284 9.02532 16.1552C9.30148 15.5829 9.43435 14.8995 9.42393 14.1075L9.4083 9.74629C9.4083 9.50661 9.4578 9.34595 9.5568 9.26172C9.6558 9.17835 9.8564 9.13666 10.1586 9.13666H10.6744C10.9558 9.13666 11.1486 9.18356 11.2528 9.27735C11.357 9.37114 11.4091 9.52745 11.4091 9.74629L11.4248 13.7636C11.4248 14.4731 11.5055 15.0671 11.6671 15.5456C11.8286 16.025 12.1073 16.3975 12.5033 16.6632C12.8993 16.929 13.4517 17.0618 14.1603 17.0618C14.4625 17.0618 14.7543 16.9941 15.0356 16.8586C15.317 16.724 15.5619 16.5365 15.7703 16.2959L15.8329 16.3272C16.6457 16.744 17.2501 17.0288 17.6461 17.1791C18.0421 17.3302 18.4381 17.4057 18.8341 17.4057C19.2301 17.4057 19.587 17.2946 19.9361 17.0697C20.2852 16.8456 20.5692 16.4861 20.788 15.9911C21.0069 15.497 21.1163 14.8639 21.1163 14.0919C21.1163 13.4666 21.0017 12.8865 20.7724 12.3489ZM19.6313 15.6003C19.4542 15.866 19.1884 15.9989 18.8341 15.9989C18.5632 15.9989 18.2766 15.939 17.9744 15.8191C17.6722 15.7002 17.1667 15.4622 16.4581 15.1079L16.3487 15.0454L16.7551 13.576C16.901 13.0445 17.112 12.6485 17.3882 12.388C17.6643 12.1284 17.99 11.9972 18.3652 11.9972C18.8654 11.9972 19.2457 12.1831 19.5063 12.5522C19.7668 12.9221 19.897 13.4353 19.897 14.0919C19.897 14.8326 19.8085 15.3346 19.6313 15.6003Z"
+                        fill="#8f9bad"
+                      ></path>
+                    </g>
+                  </g>
+                </g>
+                <defs>
+                  <clipPath id="clip0_181_1123">
+                    <rect
+                      width="20.4391"
+                      height="17.9059"
+                      fill="white"
+                      transform="translate(0.810913 0.0470428)"
+                    ></rect>
+                  </clipPath>
+                </defs>
+              </svg>
+            </span>
           </div>
-
-          {/* نوار پیشرفت موجودی */}
-          {product.stockPercentage && (
-            <div className="mt-2">
-              <div className="w-full bg-gray-200 rounded-full h-1">
-                <div
-                  className="bg-green-500 h-1 rounded-full transition-all duration-500"
-                  style={{ width: `${product.stockPercentage}%` }}
-                ></div>
-              </div>
-              <div className="text-[10px] text-gray-500 text-left mt-1 flex items-center gap-1">
-                <IoDiamondOutline size={10} />
-                تنها {product.stockCount} عدد در انبار باقی مانده
-              </div>
-            </div>
-          )}
         </div>
-
-        {/* افکت هاور */}
-        <div className="absolute inset-0 rounded-3xl border-2 border-transparent group-hover:border-primary/20 transition-all duration-300 pointer-events-none"></div>
       </Link>
     </div>
   );
 };
-
 
 export default ProductCard;

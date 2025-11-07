@@ -14,7 +14,7 @@ const ProductCard = ({ product, className = "" }) => {
 
   return (
     <div
-      className={`bg-white snap-start relative rounded-[24px] max-w-[301px] min-w-[268.9px] max-h-[388px] max-md:max-h-[330px] max-md:min-w-[190px] px-4 pt-2 pb-0 border border-gray-200 hover:border-gray-300 transition-all cursor-pointer max-md:max-w-[240px] ${className}`}
+      className={`bg-white snap-start relative rounded-3xl max-w-[301px] min-w-[268.9px] max-h-[388px] max-md:max-h-[330px] max-md:min-w-[190px] px-4 pt-2 pb-0 border border-gray-200 hover:border-gray-300 transition-all cursor-pointer max-md:max-w-60 ${className}`}
     >
       <Link href={product.href} className="block h-full">
         {/* تصویر محصول */}

@@ -2,6 +2,9 @@ import React from "react";
 import ImageSlider from "@/app/components/ImageSlider/ImageSlider";
 import CategoriesSection from "@/app/components/CategoriesSection/CategoriesSection";
 import SpecialOffers from "@/app/components/sections/SpecialOffers/SpecialOffers";
+import BannerSection from "@/app/components/BannerSection/BannerSection ";
+import NewProducts from "@/app/components/sections/NewProducts";
+import BannerSection2 from "@/app/components/BannerSection2/BannerSection2";
 
 function page() {
   const customProducts = [
@@ -108,6 +111,9 @@ function page() {
       <ImageSlider />
       <CategoriesSection />
       <SpecialOffers products={customProducts} />
+      <BannerSection />
+      <NewProducts />
+      <BannerSection2 />
     </div>
   );
 }

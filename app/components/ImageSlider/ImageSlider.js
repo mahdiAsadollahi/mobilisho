@@ -5,6 +5,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination, Autoplay } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
+import "./ImageSlider.css";
 
 const ImageSlider = ({ slides }) => {
   const sliderData = slides || [
@@ -33,48 +34,51 @@ const ImageSlider = ({ slides }) => {
 
   return (
     <div className="w-full container mx-auto px-4">
-      <Swiper
-        dir="rtl"
-        modules={[Pagination, Autoplay]}
-        pagination={{
-          clickable: true,
-          el: ".custom-pagination",
-          bulletClass: "swiper-pagination-bullet",
-          bulletActiveClass: "swiper-pagination-bullet-active",
-        }}
-        autoplay={{
-          delay: 5000,
-          disableOnInteraction: false,
-        }}
-        loop={true}
-        speed={600}
-        className="swiper-main rounded-none relative md:-mt-12"
-      >
-        {sliderData.map((slide, index) => (
-          <SwiperSlide key={index}>
-            <div className="relative border border-gray-200 max-md:mt-4 mt-16 md:h-[360px] h-80 w-full max-w-[97%] mx-auto flex items-center rounded-3xl overflow-hidden">
-              {/* تصویر موبایل */}
-              <div className="w-full h-full md:hidden flex">
+      <div className="relative">
+        {" "}
+        {/* Container اضافه برای position بهتر */}
+        <Swiper
+          dir="rtl"
+          modules={[Pagination, Autoplay]}
+          pagination={{
+            clickable: true,
+            el: ".custom-pagination",
+            bulletClass: "swiper-pagination-bullet",
+            bulletActiveClass: "swiper-pagination-bullet-active",
+          }}
+          autoplay={{
+            delay: 5000,
+            disableOnInteraction: false,
+          }}
+          loop={true}
+          speed={600}
+          className="swiper-main rounded-none relative md:-mt-12"
+        >
+          {sliderData.map((slide, index) => (
+            <SwiperSlide key={index}>
+              <div className="relative border border-gray-200 max-md:mt-4 mt-16 md:h-[360px] h-80 w-full max-w-[97%] mx-auto flex items-center rounded-3xl overflow-hidden">
+                {/* تصویر موبایل */}
+                <div className="w-full h-full md:hidden flex">
+                  <img
+                    src={slide.mobile}
+                    alt={slide.alt}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+
+                {/* تصویر دسکتاپ */}
                 <img
-                  src={slide.mobile}
+                  src={slide.desktop}
                   alt={slide.alt}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover max-md:hidden"
                 />
               </div>
-
-              {/* تصویر دسکتاپ */}
-              <img
-                src={slide.desktop}
-                alt={slide.alt}
-                className="w-full h-full object-cover max-md:hidden"
-              />
-            </div>
-          </SwiperSlide>
-        ))}
-
-        {/* Pagination */}
+            </SwiperSlide>
+          ))}
+        </Swiper>
+        {/* Pagination - حالا درست position شده */}
         <div className="custom-pagination" />
-      </Swiper>
+      </div>
     </div>
   );
 };

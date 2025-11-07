@@ -1,10 +1,12 @@
 import React from "react";
-import ImageSlider from "./components/ImageSlider/ImageSlider";
+import ImageSlider from "@/app/components/ImageSlider/ImageSlider";
+import CategoriesSection from "@/app/components/CategoriesSection/CategoriesSection";
 
 function page() {
   return (
     <div>
       <ImageSlider />
+      <CategoriesSection />
     </div>
   );
 }

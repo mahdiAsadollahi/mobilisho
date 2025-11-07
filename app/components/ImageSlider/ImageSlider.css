@@ -1,0 +1,51 @@
+/* components/ImageSlider.css */
+.swiper-main {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.swiper-slide {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* استایل‌های Pagination */
+.custom-pagination {
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  width: 100% !important;
+  position: absolute;
+  bottom: -30px; /* فاصله از پایین اسلایدر */
+  left: 0;
+  right: 0;
+  z-index: 50;
+  margin: 0 auto;
+}
+
+.swiper-pagination-bullet {
+  width: 8px;
+  height: 8px;
+  background-color: #d1d5db;
+  opacity: 0.7;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin: 0 4px !important;
+}
+
+.swiper-pagination-bullet-active {
+  background-color: #3b82f6;
+  opacity: 1;
+  transform: scale(1.2);
+}
+
+/* برای موبایل pagination را مخفی می‌کنیم */
+@media (max-width: 768px) {
+  .custom-pagination {
+    display: none !important;
+  }
+}

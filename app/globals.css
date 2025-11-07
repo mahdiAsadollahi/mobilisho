@@ -2,7 +2,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
+  --background: rgb(247 248 250);
   --foreground: #171717;
 }
 
@@ -17,7 +17,7 @@
 
 @font-face {
   font-family: "Vazirmatn";
-  src: url("/fonts/Vazirmatn-Medium.woff2") format("woff2");
+  src: url("/fonts/Vazir-Medium.woff2") format("woff2");
   font-weight: 500;
   font-style: normal;
   font-display: swap;
@@ -25,7 +25,7 @@
 
 @font-face {
   font-family: "Vazirmatn";
-  src: url("/fonts/Vazirmatn-Bold.woff2") format("woff2");
+  src: url("/fonts/Vazir-Bold.woff2") format("woff2");
   font-weight: 700;
   font-style: normal;
   font-display: swap;

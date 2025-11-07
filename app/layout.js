@@ -1,3 +1,4 @@
+import Footer from "@/app/components/Footer/Footer";
 import "./globals.css";
 import Navbar from "@/app/components/Navbar/Navbar";
 
@@ -12,6 +13,7 @@ export default function RootLayout({ children }) {
       <body className="font-sans antialiased">
         <Navbar />
         {children}
+        <Footer />
       </body>
     </html>
   );

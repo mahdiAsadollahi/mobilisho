@@ -93,7 +93,7 @@ const BlogSection = ({ posts = [] }) => {
   const postsData = posts.length > 0 ? posts : defaultPosts;
 
   return (
-    <div className="container text-[#1B1F22] mb-4">
+    <div className="container text-[#1B1F22] mb-24">
       <div className="flex justify-between">
         <SectionHeader
           title="بلاگ موبایلیــشو"

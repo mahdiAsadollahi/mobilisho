@@ -114,7 +114,7 @@ const Footer = () => {
             >
               Mahdi Asadollahi
             </a>
-            <p className="text-xs text-[#f7f8fa]"> طراحی شده با ❤️</p>
+            <p className="text-xs text-[#f7f8fa]"> توسعه داده شده با ❤️</p>
           </div>
         </div>
       </div>

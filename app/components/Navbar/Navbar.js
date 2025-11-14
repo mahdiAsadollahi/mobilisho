@@ -166,7 +166,7 @@ const Navbar = () => {
 
               {/* منوی دسته بندی ها */}
               {isCategoryOpen && (
-                <div className="absolute top-full left-0 w-48 bg-white border border-gray-200 rounded-b-2xl shadow-lg z-50 border-t-0">
+                <div className="absolute top-full left-0 w-48 bg-white border border-gray-200 rounded-2xl shadow-lg z-50 border-t-0">
                   <div className="py-2">
                     <a
                       href="/category/mobile"

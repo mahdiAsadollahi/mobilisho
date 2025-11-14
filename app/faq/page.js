@@ -34,7 +34,7 @@ export default function FAQPage() {
   ];
 
   return (
-    <main className="w-full min-h-screen bg-gray-50 py-20 px-40">
+    <main className="w-full min-h-screen bg-gray-50 py-8">
       <div className="container flex flex-col bg-white mt-10 rounded-3xl justify-center text-[#1B1F22] md:max-w-[900px] py-7 mx-auto">
         {/* Header Section */}
         <div className="flex justify-start items-center mb-10 pr-6 gap-4">

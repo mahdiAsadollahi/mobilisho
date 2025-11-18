@@ -1,19 +1,20 @@
+// app/layout.js
+"use client";
 import "./globals.css";
+import { usePathname } from "next/navigation";
 import Footer from "@/app/components/Footer/Footer";
 import Navbar from "@/app/components/Navbar/Navbar";
 
-export const metadata = {
-  title: "موبایلی شو",
-  description: "فروشگاه اینترنتی موبایل و لوازم جانبی",
-};
-
 export default function RootLayout({ children }) {
+  const pathname = usePathname();
+  const isDashboard = pathname?.startsWith("/dashboard");
+
   return (
     <html lang="fa" dir="rtl">
       <body>
-        <Navbar />
+        {!isDashboard && <Navbar />}
         {children}
-        <Footer />
+        {!isDashboard && <Footer />}
       </body>
     </html>
   );

@@ -2,7 +2,7 @@
 "use client";
 
 import ProductCard from "../ProductCard/ProductCard";
-import { FaChevronRight, FaChevronLeft } from "react-icons/fa";
+import { FaHeadphones } from "react-icons/fa";
 
 const RelatedProducts = ({ products }) => {
   return (
@@ -11,9 +11,7 @@ const RelatedProducts = ({ products }) => {
         <div className="flex justify-between">
           <div className="flex items-center gap-4 md:gap-4">
             <div className="flex justify-center items-center w-12 h-12 bg-white border border-gray-200 rounded-xl hover:bg-white text-primary">
-              <span className="text-[22px] leading-none">
-                {/* آیکون محصولات مرتبط */}
-              </span>
+              <FaHeadphones className="text-blue-500 text-xl" />
             </div>
             <div className="flex flex-col items-start justify-center gap-1">
               <h3 className="text-lg md:text-3xl ml-8 tracking-[-0.065em] text-secondary">

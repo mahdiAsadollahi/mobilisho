@@ -6,15 +6,24 @@ import {
   FaShieldAlt,
   FaCheckCircle,
   FaRegHeart,
+  FaHeart,
 } from "react-icons/fa";
+import { useState } from "react";
 
 const ProductSpecs = ({ product, onAddToCart, onAddToWishlist }) => {
+  const [isInWishlist, setIsInWishlist] = useState(false);
+
   const formatPrice = (price) => {
     return new Intl.NumberFormat("fa-IR").format(price);
   };
 
   const hasDiscount =
     product.originalPrice && product.originalPrice > product.price;
+
+  const handleWishlistClick = () => {
+    setIsInWishlist(!isInWishlist);
+    onAddToWishlist && onAddToWishlist();
+  };
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-6 space-y-4 sticky top-6">
@@ -87,18 +96,26 @@ const ProductSpecs = ({ product, onAddToCart, onAddToWishlist }) => {
         <div className="space-y-3">
           <button
             onClick={onAddToCart}
-            className="w-full bg-black text-white py-3 px-4 rounded-xl font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+            className="w-full bg-black text-white py-3 px-4 rounded-xl font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={!product.inStock}
           >
             افزودن به سبد خرید
           </button>
 
           <button
-            onClick={onAddToWishlist}
-            className="w-full border border-gray-300 text-gray-700 py-3 px-4 rounded-xl font-medium hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+            onClick={handleWishlistClick}
+            className={`w-full border py-3 px-4 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 ${
+              isInWishlist
+                ? "border-red-300 text-red-600 bg-red-50 hover:bg-red-100"
+                : "border-gray-300 text-gray-700 hover:bg-gray-50"
+            }`}
           >
-            <FaRegHeart />
-            افزودن به علاقه‌مندی‌ها
+            {isInWishlist ? (
+              <FaHeart className="text-red-500" />
+            ) : (
+              <FaRegHeart />
+            )}
+            {isInWishlist ? "حذف از علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"}
           </button>
         </div>
       </div>

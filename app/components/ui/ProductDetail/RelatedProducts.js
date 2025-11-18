@@ -6,7 +6,7 @@ import { FaHeadphones } from "react-icons/fa";
 
 const RelatedProducts = ({ products }) => {
   return (
-    <div className="container-full px-2.5 text-[#1B1F22]">
+    <div className="container-full px-2.5 mb-10 text-[#1B1F22]">
       <div className="headCoursel flex-col mt-8">
         <div className="flex justify-between">
           <div className="flex items-center gap-4 md:gap-4">

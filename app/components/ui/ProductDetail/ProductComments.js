@@ -106,7 +106,7 @@ const ProductComments = ({ productId }) => {
   };
 
   return (
-    <div className="bg-white rounded-xl mt-8">
+    <div className="bg-white rounded-xl py-8 mt-8">
       {/* هدر بخش نظرات */}
       <div className="text-right mb-8">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">نظرات کاربران</h2>
@@ -177,7 +177,7 @@ const ProductComments = ({ productId }) => {
         {comments.map((comment) => (
           <div
             key={comment.id}
-            className="pb-6 border-b border-gray-200 last:border-b-0 last:pb-0"
+            className="p-6 border-b border-gray-200 last:border-b-0 last:pb-0"
           >
             <div className="flex items-start gap-4">
               {/* آواتار کاربر */}

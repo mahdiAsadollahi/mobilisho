@@ -8,6 +8,8 @@
     "start": "next start"
   },
   "dependencies": {
+    "@ckeditor/ckeditor5-build-classic": "^41.4.2",
+    "@ckeditor/ckeditor5-react": "^11.0.0",
     "leaflet": "^1.9.4",
     "next": "16.0.1",
     "react": "19.2.0",

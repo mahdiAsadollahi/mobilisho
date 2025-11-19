@@ -7,7 +7,7 @@ import Navbar from "@/app/components/Navbar/Navbar";
 
 export default function RootLayout({ children }) {
   const pathname = usePathname();
-  const isDashboard = pathname?.startsWith("/dashboard");
+  const isDashboard = pathname?.startsWith("/dashboard") || pathname?.startsWith("/admin");
 
   return (
     <html lang="fa" dir="rtl">

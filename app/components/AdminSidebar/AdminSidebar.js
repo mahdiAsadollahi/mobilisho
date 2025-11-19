@@ -1,12 +1,18 @@
-// app/components/DashboardSidebar/DashboardSidebar.js
+// app/components/AdminSidebar/AdminSidebar.js
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   FiHome,
+  FiGrid,
   FiShoppingBag,
-  FiHeadphones,
-  FiUser,
+  FiFileText,
+  FiTag,
+  FiShoppingCart,
+  FiMessageSquare,
+  FiUsers,
+  FiStar,
+  FiBarChart2,
   FiLogOut,
   FiMenu,
   FiX,
@@ -14,18 +20,23 @@ import {
 import { useState, useEffect } from "react";
 
 const menuItems = [
-  { href: "/dashboard", icon: FiHome, label: "داشبورد" },
-  { href: "/dashboard/orders", icon: FiShoppingBag, label: "سفارشات" },
-  { href: "/dashboard/support", icon: FiHeadphones, label: "پشتیبانی" },
-  { href: "/dashboard/profile", icon: FiUser, label: "پروفایل" },
+  { href: "/admin", icon: FiHome, label: "پیشخوان" },
+  { href: "/admin/categories", icon: FiGrid, label: "دسته‌بندی‌ها" },
+  { href: "/admin/products", icon: FiShoppingBag, label: "محصولات" },
+  { href: "/admin/articles", icon: FiFileText, label: "مقالات" },
+  { href: "/admin/discounts", icon: FiTag, label: "تخفیف‌ها" },
+  { href: "/admin/orders", icon: FiShoppingCart, label: "سفارشات" },
+  { href: "/admin/tickets", icon: FiMessageSquare, label: "تیکت‌ها" },
+  { href: "/admin/users", icon: FiUsers, label: "کاربران" },
+  { href: "/admin/reviews", icon: FiStar, label: "نظرات" },
+  { href: "/admin/reports", icon: FiBarChart2, label: "گزارشات" },
 ];
 
-export default function DashboardSidebar() {
+export default function AdminSidebar() {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
-  // تشخیص اندازه صفحه
   useEffect(() => {
     const checkScreenSize = () => {
       setIsMobile(window.innerWidth < 768);
@@ -43,7 +54,6 @@ export default function DashboardSidebar() {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
-  // بستن منو هنگام کلیک روی لینک در موبایل
   const handleLinkClick = () => {
     if (isMobile) {
       setIsMobileMenuOpen(false);
@@ -52,7 +62,6 @@ export default function DashboardSidebar() {
 
   return (
     <>
-      {/* دکمه منو برای موبایل */}
       {isMobile && (
         <button
           className="fixed top-4 right-4 z-50 bg-white p-2 rounded-lg shadow-md"
@@ -62,7 +71,6 @@ export default function DashboardSidebar() {
         </button>
       )}
 
-      {/* سایدبار */}
       <div
         className={`
           ${isMobile ? "fixed inset-y-0 right-0 z-40 transform" : "relative"} 
@@ -71,18 +79,16 @@ export default function DashboardSidebar() {
           }
           transition-transform duration-300 ease-in-out
           w-64 bg-white shadow-lg border-l border-gray-200 h-screen
+          flex flex-col
         `}
       >
-        {/* Logo */}
-        <div className="p-4 md:p-6 border-b border-gray-200">
-          <h1 className="text-lg md:text-xl font-bold text-black">
-            پنل کاربری
-          </h1>
+        <div className="p-6 border-b border-gray-200">
+          <h1 className="text-xl font-bold text-gray-800">پنل مدیریت</h1>
+          <p className="text-sm text-gray-500 mt-1">فروشگاه اینترنتی</p>
         </div>
 
-        {/* Menu */}
-        <nav className="p-4">
-          <ul className="space-y-2">
+        <nav className="p-4 flex-1 overflow-y-auto">
+          <ul className="space-y-1">
             {menuItems.map((item) => {
               const isActive = pathname === item.href;
               return (
@@ -90,14 +96,14 @@ export default function DashboardSidebar() {
                   <Link
                     href={item.href}
                     onClick={handleLinkClick}
-                    className={`flex font-bold items-center gap-3 p-3 rounded-lg transition-all ${
+                    className={`flex items-center gap-3 p-3 rounded-lg transition-all ${
                       isActive
-                        ? "bg-gray-100 text-black border-r-2 border-black"
-                        : "text-gray-600 hover:bg-gray-50 hover:text-black"
+                        ? "bg-blue-50 text-blue-600 border-r-2 border-blue-600"
+                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-800"
                     }`}
                   >
                     <item.icon className="text-lg" />
-                    <span>{item.label}</span>
+                    <span className="text-sm font-medium">{item.label}</span>
                   </Link>
                 </li>
               );
@@ -105,27 +111,24 @@ export default function DashboardSidebar() {
           </ul>
         </nav>
 
-        <div className="absolute cursor-pointer bottom-16 right-4 left-4">
+        {/* بخش دکمه‌های پایینی */}
+        <div className="mt-auto p-4 border-t border-gray-200 space-y-2">
           <Link
             href="/"
             onClick={handleLinkClick}
-            className="flex items-center gap-3 w-full p-3 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all mb-2"
+            className="flex items-center gap-3 w-full p-3 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
           >
             <FiHome className="text-lg" />
-            <span className="font-bold">بازگشت به سایت</span>
+            <span className="text-sm font-medium">بازگشت به سایت</span>
           </Link>
-        </div>
 
-        {/* Logout */}
-        <div className="absolute cursor-pointer bottom-4 right-4 left-4">
-          <button className="flex items-center cursor-pointer font-bold gap-3 w-full p-3 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all">
+          <button className="flex items-center gap-3 w-full p-3 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all">
             <FiLogOut />
-            <span>خروج از اکانت</span>
+            <span className="text-sm font-medium">خروج از پنل</span>
           </button>
         </div>
       </div>
 
-      {/* Overlay برای موبایل */}
       {isMobile && isMobileMenuOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-30"

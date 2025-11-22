@@ -10,10 +10,9 @@ import {
   FiGrid,
   FiFolder,
 } from "react-icons/fi";
-import DatePicker from "../DatePicker/DatePicker";
-import { parseJalaliDate, formatToJalali } from "@/utils/dateUtils";
+import JalaliDatePicker from "@/app/components/JalaliDatePicker/JalaliDatePicker";
 
-// داده‌های فیک
+// داده‌های فیک برای نمایش
 const fakeCategories = [
   { id: 1, name: "الکترونیک", slug: "electronics" },
   { id: 2, name: "لباس", slug: "clothing" },
@@ -29,12 +28,6 @@ const fakeCollections = [
   { id: 4, name: "تابستانه", slug: "summer-collection" },
 ];
 
-const fakeProducts = [
-  { id: 1, name: "گوشی موبایل سامسونگ", sku: "SM-A123" },
-  { id: 2, name: "لپ تاپ ایسوس", sku: "AS-X456" },
-  { id: 3, name: "هدفون سونی", sku: "SN-W789" },
-];
-
 const CampaignModal = ({ isOpen, onClose, onSave, campaign, loading }) => {
   const [formData, setFormData] = useState({
     name: "",
@@ -42,8 +35,8 @@ const CampaignModal = ({ isOpen, onClose, onSave, campaign, loading }) => {
     scope: "all_products",
     discountType: "percentage",
     discountValue: "",
-    startDate: undefined,
-    endDate: undefined,
+    startDate: "",
+    endDate: "",
     status: "draft",
     targetCategories: [],
     targetProducts: [],
@@ -61,12 +54,8 @@ const CampaignModal = ({ isOpen, onClose, onSave, campaign, loading }) => {
     if (campaign) {
       setFormData({
         ...campaign,
-        startDate: campaign.startDate
-          ? parseJalaliDate(campaign.startDate)
-          : undefined,
-        endDate: campaign.endDate
-          ? parseJalaliDate(campaign.endDate)
-          : undefined,
+        startDate: campaign.startDate || "",
+        endDate: campaign.endDate || "",
         targetCategories: campaign.targetCategories || [],
         targetProducts: campaign.targetProducts || [],
         targetCollections: campaign.targetCollections || [],
@@ -78,8 +67,8 @@ const CampaignModal = ({ isOpen, onClose, onSave, campaign, loading }) => {
         scope: "all_products",
         discountType: "percentage",
         discountValue: "",
-        startDate: undefined,
-        endDate: undefined,
+        startDate: "",
+        endDate: "",
         status: "draft",
         targetCategories: [],
         targetProducts: [],
@@ -96,12 +85,6 @@ const CampaignModal = ({ isOpen, onClose, onSave, campaign, loading }) => {
     collection.name.includes(collectionSearch)
   );
 
-  const filteredProducts = fakeProducts.filter(
-    (product) =>
-      product.name.includes(productSearch) ||
-      product.sku.includes(productSearch)
-  );
-
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -113,25 +96,8 @@ const CampaignModal = ({ isOpen, onClose, onSave, campaign, loading }) => {
       alert("لطفا مقدار تخفیف را وارد کنید");
       return;
     }
-    if (
-      formData.discountType === "percentage" &&
-      Number(formData.discountValue) > 100
-    ) {
-      alert("درصد تخفیف نمی‌تواند بیشتر از ۱۰۰ باشد");
-      return;
-    }
-    if (!formData.startDate || !formData.endDate) {
-      alert("لطفا تاریخ شروع و پایان را انتخاب کنید");
-      return;
-    }
 
-    const dataToSave = {
-      ...formData,
-      startDate: formData.startDate ? formatToJalali(formData.startDate) : null,
-      endDate: formData.endDate ? formatToJalali(formData.endDate) : null,
-    };
-
-    onSave(dataToSave);
+    onSave(formData);
   };
 
   const handleChange = (field, value) => {
@@ -177,27 +143,13 @@ const CampaignModal = ({ isOpen, onClose, onSave, campaign, loading }) => {
     );
   };
 
-  const addProduct = (product) => {
-    if (!formData.targetProducts.find((p) => p.id === product.id)) {
-      handleChange("targetProducts", [...formData.targetProducts, product]);
-    }
-    setProductSearch("");
-    setShowProductDropdown(false);
-  };
-
-  const removeProduct = (productId) => {
-    handleChange(
-      "targetProducts",
-      formData.targetProducts.filter((p) => p.id !== productId)
-    );
-  };
-
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
         <div className="p-6">
+          {/* هدر */}
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-bold text-gray-800">
               {campaign ? "ویرایش کمپین" : "ایجاد کمپین جدید"}
@@ -211,7 +163,9 @@ const CampaignModal = ({ isOpen, onClose, onSave, campaign, loading }) => {
             </button>
           </div>
 
+          {/* فرم */}
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* ردیف اول */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -246,6 +200,7 @@ const CampaignModal = ({ isOpen, onClose, onSave, campaign, loading }) => {
               </div>
             </div>
 
+            {/* توضیحات */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 توضیحات
@@ -260,6 +215,7 @@ const CampaignModal = ({ isOpen, onClose, onSave, campaign, loading }) => {
               />
             </div>
 
+            {/* ردیف دوم */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -344,15 +300,17 @@ const CampaignModal = ({ isOpen, onClose, onSave, campaign, loading }) => {
               </div>
             </div>
 
+            {/* ردیف سوم - تاریخ‌ها */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   تاریخ شروع *
                 </label>
-                <DatePicker
-                  selected={formData.startDate}
-                  onSelect={(date) => handleChange("startDate", date)}
+                <JalaliDatePicker
+                  value={formData.startDate}
+                  onChange={(date) => handleChange("startDate", date)}
                   placeholder="انتخاب تاریخ شروع"
+                  outputFormat="jalali"
                 />
               </div>
 
@@ -360,14 +318,16 @@ const CampaignModal = ({ isOpen, onClose, onSave, campaign, loading }) => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   تاریخ پایان *
                 </label>
-                <DatePicker
-                  selected={formData.endDate}
-                  onSelect={(date) => handleChange("endDate", date)}
+                <JalaliDatePicker
+                  value={formData.endDate}
+                  onChange={(date) => handleChange("endDate", date)}
                   placeholder="انتخاب تاریخ پایان"
+                  outputFormat="jalali"
                 />
               </div>
             </div>
 
+            {/* انتخاب دسته‌بندی‌ها */}
             {formData.scope === "category" && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -437,6 +397,7 @@ const CampaignModal = ({ isOpen, onClose, onSave, campaign, loading }) => {
               </div>
             )}
 
+            {/* انتخاب مجموعه‌ها */}
             {formData.scope === "collection" && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -506,75 +467,7 @@ const CampaignModal = ({ isOpen, onClose, onSave, campaign, loading }) => {
               </div>
             )}
 
-            {formData.scope === "specific_products" && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  محصولات هدف
-                </label>
-                <div className="space-y-3">
-                  <div className="relative">
-                    <div className="flex items-center gap-2">
-                      <div className="relative flex-1">
-                        <FiSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                        <input
-                          type="text"
-                          value={productSearch}
-                          onChange={(e) => setProductSearch(e.target.value)}
-                          onFocus={() => setShowProductDropdown(true)}
-                          placeholder="جستجوی محصول..."
-                          className="w-full p-3 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setShowProductDropdown(!showProductDropdown)
-                        }
-                        className="p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                      >
-                        <FiPackage />
-                      </button>
-                    </div>
-
-                    {showProductDropdown && (
-                      <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
-                        {filteredProducts.map((product) => (
-                          <div
-                            key={product.id}
-                            onClick={() => addProduct(product)}
-                            className="p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
-                          >
-                            <div className="font-medium">{product.name}</div>
-                            <div className="text-sm text-gray-500">
-                              SKU: {product.sku}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex flex-wrap gap-2">
-                    {formData.targetProducts.map((product) => (
-                      <div
-                        key={product.id}
-                        className="flex items-center gap-2 bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm"
-                      >
-                        <span>{product.name}</span>
-                        <button
-                          type="button"
-                          onClick={() => removeProduct(product.id)}
-                          className="hover:text-green-600"
-                        >
-                          <FiX size={14} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
+            {/* دکمه‌ها */}
             <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
               <button
                 type="button"

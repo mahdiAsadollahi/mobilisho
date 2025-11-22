@@ -10,10 +10,9 @@ import {
   FiUser,
   FiPackage,
 } from "react-icons/fi";
-import DatePicker from "../DatePicker/DatePicker";
-import { parseJalaliDate, formatToJalali } from "@/utils/dateUtils";
+import JalaliDatePicker from "@/app/components/JalaliDatePicker/JalaliDatePicker";
 
-// داده‌های فیک
+// داده‌های فیک برای نمایش
 const fakeCustomers = [
   { id: 1, name: "محمد احمدی", email: "m.ahmadi@example.com" },
   { id: 2, name: "فاطمه محمدی", email: "f.mohammadi@example.com" },
@@ -40,7 +39,7 @@ const DiscountModal = ({ isOpen, onClose, onSave, discount, loading }) => {
     maxUsage: "",
     usedCount: 0,
     minOrderAmount: "",
-    expiresAt: undefined,
+    expiresAt: "",
     status: "active",
     targetCustomers: [],
     targetProducts: [],
@@ -55,9 +54,7 @@ const DiscountModal = ({ isOpen, onClose, onSave, discount, loading }) => {
     if (discount) {
       setFormData({
         ...discount,
-        expiresAt: discount.expiresAt
-          ? parseJalaliDate(discount.expiresAt)
-          : undefined,
+        expiresAt: discount.expiresAt || "",
         targetCustomers: discount.targetCustomers || [],
         targetProducts: discount.targetProducts || [],
       });
@@ -71,7 +68,7 @@ const DiscountModal = ({ isOpen, onClose, onSave, discount, loading }) => {
         maxUsage: "",
         usedCount: 0,
         minOrderAmount: "",
-        expiresAt: undefined,
+        expiresAt: "",
         status: "active",
         targetCustomers: [],
         targetProducts: [],
@@ -102,20 +99,8 @@ const DiscountModal = ({ isOpen, onClose, onSave, discount, loading }) => {
       alert("لطفا مقدار تخفیف را وارد کنید");
       return;
     }
-    if (
-      formData.discountType === "percentage" &&
-      Number(formData.value) > 100
-    ) {
-      alert("درصد تخفیف نمی‌تواند بیشتر از ۱۰۰ باشد");
-      return;
-    }
 
-    const dataToSave = {
-      ...formData,
-      expiresAt: formData.expiresAt ? formatToJalali(formData.expiresAt) : null,
-    };
-
-    onSave(dataToSave);
+    onSave(formData);
   };
 
   const handleChange = (field, value) => {
@@ -161,6 +146,7 @@ const DiscountModal = ({ isOpen, onClose, onSave, discount, loading }) => {
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
         <div className="p-6">
+          {/* هدر */}
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-bold text-gray-800">
               {discount ? "ویرایش کد تخفیف" : "ایجاد کد تخفیف جدید"}
@@ -174,7 +160,9 @@ const DiscountModal = ({ isOpen, onClose, onSave, discount, loading }) => {
             </button>
           </div>
 
+          {/* فرم */}
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* ردیف اول */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -210,6 +198,7 @@ const DiscountModal = ({ isOpen, onClose, onSave, discount, loading }) => {
               </div>
             </div>
 
+            {/* توضیحات */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 توضیحات
@@ -224,6 +213,7 @@ const DiscountModal = ({ isOpen, onClose, onSave, discount, loading }) => {
               />
             </div>
 
+            {/* ردیف دوم */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -304,6 +294,7 @@ const DiscountModal = ({ isOpen, onClose, onSave, discount, loading }) => {
               </div>
             </div>
 
+            {/* ردیف سوم */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -326,10 +317,11 @@ const DiscountModal = ({ isOpen, onClose, onSave, discount, loading }) => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   تاریخ انقضا
                 </label>
-                <DatePicker
-                  selected={formData.expiresAt}
-                  onSelect={(date) => handleChange("expiresAt", date)}
+                <JalaliDatePicker
+                  value={formData.expiresAt}
+                  onChange={(date) => handleChange("expiresAt", date)}
                   placeholder="انتخاب تاریخ"
+                  outputFormat="jalali"
                 />
               </div>
 
@@ -349,12 +341,14 @@ const DiscountModal = ({ isOpen, onClose, onSave, discount, loading }) => {
               </div>
             </div>
 
+            {/* انتخاب مشتریان خاص */}
             {formData.type === "customer" && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   مشتریان هدف
                 </label>
                 <div className="space-y-3">
+                  {/* جستجو و انتخاب مشتری */}
                   <div className="relative">
                     <div className="flex items-center gap-2">
                       <div className="relative flex-1">
@@ -397,6 +391,7 @@ const DiscountModal = ({ isOpen, onClose, onSave, discount, loading }) => {
                     )}
                   </div>
 
+                  {/* لیست مشتریان انتخاب شده */}
                   <div className="flex flex-wrap gap-2">
                     {formData.targetCustomers.map((customer) => (
                       <div
@@ -418,12 +413,14 @@ const DiscountModal = ({ isOpen, onClose, onSave, discount, loading }) => {
               </div>
             )}
 
+            {/* انتخاب محصولات خاص */}
             {formData.type === "product" && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   محصولات هدف
                 </label>
                 <div className="space-y-3">
+                  {/* جستجو و انتخاب محصول */}
                   <div className="relative">
                     <div className="flex items-center gap-2">
                       <div className="relative flex-1">
@@ -466,6 +463,7 @@ const DiscountModal = ({ isOpen, onClose, onSave, discount, loading }) => {
                     )}
                   </div>
 
+                  {/* لیست محصولات انتخاب شده */}
                   <div className="flex flex-wrap gap-2">
                     {formData.targetProducts.map((product) => (
                       <div
@@ -487,6 +485,7 @@ const DiscountModal = ({ isOpen, onClose, onSave, discount, loading }) => {
               </div>
             )}
 
+            {/* دکمه‌ها */}
             <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
               <button
                 type="button"

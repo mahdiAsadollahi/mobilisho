@@ -37,8 +37,6 @@ body {
   font-family: "Vazirmatn", sans-serif;
 }
 
-
-
 /* برای موبایل pagination را مخفی می‌کنیم */
 @media (max-width: 768px) {
   .custom-pagination {
@@ -85,4 +83,19 @@ body {
   .container {
     max-width: 1536px;
   }
+}
+
+/* در فایل global.css */
+.rdp-selected {
+  background-color: #3b82f6 !important;
+  color: white !important;
+}
+
+.rdp-today {
+  background-color: #dbeafe !important;
+  color: #1e40af !important;
+}
+
+.rdp-day:hover {
+  background-color: #eff6ff !important;
 }

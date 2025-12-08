@@ -58,7 +58,7 @@ export {
   generateAccessToken,
   verifyAccessToken,
   generateRefreshToken,
-  valiadteEmail,
-  valiadtePhone,
+  validateEmail,
+  validatePhone,
   valiadtePassword,
 };

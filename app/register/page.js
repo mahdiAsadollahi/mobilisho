@@ -62,14 +62,13 @@ export default function RegisterPage() {
     console.log("ارسال کد تایید به:", formData.phone);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (formData.password !== formData.confirmPassword) {
       alert("رمز عبور و تکرار آن مطابقت ندارند");
       return;
     }
 
-    console.log("ثبت نام:", formData);
   };
 
   return (

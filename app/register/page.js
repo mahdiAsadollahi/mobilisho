@@ -40,7 +40,7 @@ export default function RegisterPage() {
     });
   };
 
-  const sendVerificationCode = () => {
+  const sendVerificationCode = async () => {
     if (!formData.phone) {
       alert("لطفا شماره تلفن را وارد کنید");
       return;
@@ -59,7 +59,15 @@ export default function RegisterPage() {
       });
     }, 1000);
 
-    console.log("ارسال کد تایید به:", formData.phone);
+    const res = await fetch("/api/auth/send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        phone: formData.phone,
+      }),
+    });
+
+    console.log(res);
   };
 
   const handleSubmit = async (e) => {
@@ -69,6 +77,14 @@ export default function RegisterPage() {
       return;
     }
 
+    console.log(
+      "FLAG -> ",
+      formData.username,
+      formData.password,
+      formData.confirmPassword,
+      formData.phone,
+      formData.verificationCode
+    );
   };
 
   return (

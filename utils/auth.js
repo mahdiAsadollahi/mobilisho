@@ -35,6 +35,10 @@ const generateRefreshToken = (data) => {
   return token;
 };
 
+const generateAuthCode = () => {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+};
+
 const validateEmail = (email) => {
   const pattern =
     /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -61,4 +65,5 @@ export {
   validateEmail,
   validatePhone,
   valiadtePassword,
+  generateAuthCode,
 };

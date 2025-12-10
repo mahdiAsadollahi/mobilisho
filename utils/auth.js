@@ -1,5 +1,5 @@
-const { hash, compare } = require("bcryptjs");
-const { sign } = require("jsonwebtoken");
+import { hash, compare, genSalt } from "bcryptjs";
+import { sign, verify } from "jsonwebtoken";
 
 const hashPassword = async (password) => {
   const hashedPassword = await hash(password, 12);
@@ -8,6 +8,17 @@ const hashPassword = async (password) => {
 
 const verifyPassword = async (password, hashedPassword) => {
   const isValid = await compare(password, hashedPassword);
+  return isValid;
+};
+
+const hashAuthCode = async (code) => {
+  const salt = await genSalt(10);
+  const hashedCode = await hash(code, salt);
+  return hashedCode;
+};
+
+const verifyAuthCode = async (code, hashedCode) => {
+  const isValid = await compare(code, hashedCode);
   return isValid;
 };
 
@@ -50,20 +61,27 @@ const validatePhone = (phone) => {
   return pattern.test(phone.replace(/\s+/g, ""));
 };
 
-const valiadtePassword = (password) => {
+const validatePassword = (password) => {
   const pattern =
     /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$ %^&*-]).{8,}$/g;
   return pattern.test(password);
 };
 
+const validateUsername = (username) => {
+  return username && username.length >= 3 && username.length <= 30;
+};
+
 export {
   hashPassword,
   verifyPassword,
+  hashAuthCode,
+  verifyAuthCode,
   generateAccessToken,
   verifyAccessToken,
   generateRefreshToken,
   validateEmail,
   validatePhone,
-  valiadtePassword,
+  validatePassword,
+  validateUsername,
   generateAuthCode,
 };

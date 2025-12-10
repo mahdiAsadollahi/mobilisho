@@ -5,15 +5,24 @@ const schema = new mongoose.Schema(
     phone: {
       type: String,
       required: true,
+      index: true,
     },
     code: {
       type: String,
       required: true,
     },
+    codeHash: {
+      type: String,
+      required: true,
+    },
+    attempts: {
+      type: Number,
+      default: 0,
+    },
     expiresAt: {
       type: Date,
       required: true,
-      index: { expireAfterSeconds: 300 },
+      index: { expires: "2m" },
     },
   },
   {
@@ -24,5 +33,4 @@ const schema = new mongoose.Schema(
 const model =
   mongoose.models.VerificationCode ||
   mongoose.model("VerificationCode", schema);
-
 module.exports = model;

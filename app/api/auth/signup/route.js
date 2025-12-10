@@ -1,9 +1,11 @@
 import connectToDB from "@/configs/db";
 import UserModel from "@/models/User";
+import VerificationCodeModel from "@/models/VerificationCode";
 import {
   generateAccessToken,
+  generateRefreshToken,
   hashPassword,
-  valiadtePassword,
+  validatePassword,
   validatePhone,
 } from "@/utils/auth";
 import { roles } from "@/utils/constants";
@@ -12,15 +14,15 @@ export async function POST(req) {
   try {
     connectToDB();
     const body = await req.json();
-    const { username, phone, password } = body;
+    const { username, phone, password, verificationCode } = body;
 
     const isValidPhone = validatePhone(phone);
-    const isValidPassword = valiadtePassword(password);
+    const isValidPassword = validatePassword(password);
 
     if (!isValidPhone || !isValidPassword) {
       return Response.json(
-        { message: "email or password is invalid" },
-        { status: 419 }
+        { message: "شماره یا رمز عبور نامعتبر" },
+        { status: 400 }
       );
     }
 
@@ -31,34 +33,74 @@ export async function POST(req) {
     if (isUserExist) {
       return Response.json(
         {
-          message: "the username or phone already exist !!",
+          message: "با این نام کاربری یا شماره قبلا ثبت نام انجام شده",
         },
         {
-          status: 422,
+          status: 409,
+        }
+      );
+    }
+
+    const verifyCodeDoc = await VerificationCodeModel.findOne({ phone });
+
+    if (!verifyCodeDoc) {
+      return Response.json(
+        {
+          message: "کد تایید یافت نشد یا منقضی شده است",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    if (verificationCode !== verifyCodeDoc.code) {
+      return Response.json(
+        {
+          message: "کد تایید به درستی وارد نشده",
+        },
+        {
+          status: 400,
         }
       );
     }
 
     const hashedPassword = await hashPassword(password);
     const accessToken = generateAccessToken({ username });
+    const refreshToken = generateRefreshToken({ username });
 
     const users = await UserModel.find({});
+    const isFirstUser = users.length === 0;
 
     await UserModel.create({
       username,
       phone,
       password: hashedPassword,
-      role: users.length > 0 ? roles.USER : roles.ADMIN,
+      role: isFirstUser ? roles.ADMIN : roles.USER,
+      refreshToken,
     });
 
+    await VerificationCodeModel.deleteOne({ _id: verifyCodeDoc._id });
+
     return Response.json(
-      { message: "user created successfully :))" },
+      {
+        message: "کاربر با موفقیت ایجاد شد",
+        data: { username, phone, role: isFirstUser ? roles.ADMIN : roles.USER },
+      },
       {
         status: 201,
-        headers: { "Set-Cookie": `token=${accessToken};path=/;httpOnly=true` },
+        headers: {
+          "Set-Cookie": `token=${accessToken};path=/;httpOnly=true`,
+        },
       }
     );
   } catch (err) {
-    return Response.json({ message: "has error : ", err });
+    console.error("Error in signup API:", err);
+    return Response.json(
+      {
+        message: "خطا در سرور. در صورت رفع نشدن با پشتیبانی ارتباط برقرار کنید",
+      },
+      { status: 500 }
+    );
   }
 }

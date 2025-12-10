@@ -19,6 +19,7 @@ import {
 import { Input } from "@/app/components/ui/Input/Input";
 import { Button } from "@/app/components/ui/Button/Button";
 import Link from "next/link";
+import Swal from "sweetalert2";
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
@@ -38,7 +39,7 @@ export default function LoginPage() {
     });
   };
 
-  const sendVerificationCode = () => {
+  const sendVerificationCode = async () => {
     if (!formData.phone) {
       alert("لطفا شماره تلفن را وارد کنید");
       return;
@@ -57,17 +58,244 @@ export default function LoginPage() {
       });
     }, 1000);
 
-    console.log("ارسال کد تایید به:", formData.phone);
+    const res = await fetch("/api/auth/send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        phone: formData.phone,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      Swal.fire("کد تایید به شماره شما ارسال شد");
+    } else {
+      Swal.fire(data.message);
+    }
   };
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    console.log("ورود:", formData);
+
+    if (
+      !formData.phone ||
+      !/^(\+98|0)?9\d{9}$/.test(formData.phone.replace(/\s+/g, ""))
+    ) {
+      Swal.fire({
+        icon: "warning",
+        title: "شماره تلفن نامعتبر",
+        text: "لطفا شماره تلفن معتبر وارد کنید (مانند 09123456789)",
+        confirmButtonColor: "#3b82f6",
+      });
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/auth/signin", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          phone: formData.phone,
+          password: formData.password,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        Swal.close();
+
+        Swal.fire({
+          icon: "success",
+          title: "ورود موفق",
+          text: data.message || "به حساب کاربری با موفقیت وارد شدید :))",
+          confirmButtonColor: "#10b981",
+          confirmButtonText: "ورود به پنل کاربری",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            window.location.href = "/dashboard";
+          }
+        });
+
+        setFormData({
+          username: "",
+          phone: "",
+          password: "",
+          confirmPassword: "",
+          verificationCode: "",
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "خطا در ورود",
+          text: data.message || "خطایی رخ داده است",
+          confirmButtonColor: "#ef4444",
+        });
+      }
+    } catch (err) {
+      console.error("Register error:", error);
+      Swal.fire({
+        icon: "error",
+        title: "خطای ارتباط",
+        text: "خطا در ارتباط با سرور. لطفا دوباره تلاش کنید",
+        confirmButtonColor: "#ef4444",
+      });
+    }
   };
 
-  const handleResetPassword = (e) => {
+  const handleResetPassword = async (e) => {
     e.preventDefault();
-    console.log("بازیابی رمز عبور:", formData);
+    setIsLoading(true);
+
+    // اعتبارسنجی شماره تلفن
+    if (
+      !formData.phone ||
+      !/^(\+98|0)?9\d{9}$/.test(formData.phone.replace(/\s+/g, ""))
+    ) {
+      Swal.fire({
+        icon: "warning",
+        title: "شماره تلفن نامعتبر",
+        text: "لطفا شماره تلفن معتبر وارد کنید",
+        confirmButtonColor: "#3b82f6",
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    // اگر کد ارسال نشده، ارسال کن
+    if (!isCodeSent) {
+      await sendVerificationCode();
+      setIsLoading(false);
+      return;
+    }
+
+    // اعتبارسنجی کد تأیید
+    if (
+      !formData.verificationCode ||
+      !/^\d{6}$/.test(formData.verificationCode)
+    ) {
+      Swal.fire({
+        icon: "warning",
+        title: "کد تأیید نامعتبر",
+        text: "لطفا کد تأیید ۶ رقمی را وارد کنید",
+        confirmButtonColor: "#3b82f6",
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    // اعتبارسنجی رمز عبور جدید
+    if (!formData.newPassword || formData.newPassword.length < 8) {
+      Swal.fire({
+        icon: "warning",
+        title: "رمز عبور کوتاه",
+        text: "رمز عبور باید حداقل ۸ کاراکتر باشد",
+        confirmButtonColor: "#3b82f6",
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    // اعتبارسنجی تطابق رمز عبور
+    if (formData.newPassword !== formData.confirmNewPassword) {
+      Swal.fire({
+        icon: "error",
+        title: "عدم تطابق رمز عبور",
+        text: "رمز عبور جدید و تکرار آن مطابقت ندارند",
+        confirmButtonColor: "#ef4444",
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    // اعتبارسنجی قوی بودن رمز عبور
+    const strongPasswordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!strongPasswordRegex.test(formData.newPassword)) {
+      Swal.fire({
+        icon: "warning",
+        title: "رمز عبور ضعیف",
+        text: "رمز عبور باید شامل حروف بزرگ، کوچک، عدد و کاراکتر ویژه باشد",
+        confirmButtonColor: "#3b82f6",
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      Swal.fire({
+        title: "در حال تغییر رمز عبور...",
+        text: "لطفا منتظر بمانید",
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
+
+      const res = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phone: formData.phone,
+          code: formData.verificationCode,
+          newPassword: formData.newPassword,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        Swal.fire({
+          icon: "success",
+          title: "رمز عبور تغییر کرد",
+          text: data.message || "رمز عبور شما با موفقیت تغییر یافت",
+          confirmButtonColor: "#10b981",
+          confirmButtonText: "ورود با رمز جدید",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            // برگشت به صفحه لاگین
+            setIsForgotPassword(false);
+            setIsCodeSent(false);
+            setCountdown(0);
+            setFormData({
+              phone: "",
+              password: "",
+              verificationCode: "",
+              newPassword: "",
+              confirmNewPassword: "",
+            });
+          }
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "خطا در تغییر رمز",
+          text: data.message || "خطایی در تغییر رمز عبور رخ داد",
+          confirmButtonColor: "#ef4444",
+        });
+
+        // اگر خطا مربوط به کد تأیید بود
+        if (res.status === 400 || data.message?.includes("کد")) {
+          setFormData({
+            ...formData,
+            verificationCode: "",
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Reset password error:", error);
+      Swal.fire({
+        icon: "error",
+        title: "خطای ارتباط",
+        text: "خطا در ارتباط با سرور",
+        confirmButtonColor: "#ef4444",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

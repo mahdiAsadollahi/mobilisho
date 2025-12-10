@@ -57,7 +57,7 @@ export async function POST(req) {
     const accessToken = generateAccessToken({ phone });
     const refreshToken = generateRefreshToken({ phone });
 
-    await UserModel.findByIdAndUpdate(
+    await UserModel.findOneAndUpdate(
       { phone },
       {
         $set: {
@@ -78,6 +78,7 @@ export async function POST(req) {
       }
     );
   } catch (err) {
+    console.log(err);
     return Response.json(
       {
         message: "خطا در سرور. در صورت رفع نشدن با پشتیبانی ارتباط برقرار کنید",

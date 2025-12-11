@@ -29,7 +29,6 @@ const Navbar = () => {
     setIsCategoryOpen(!isCategoryOpen);
   };
 
-  // بستن منوی دسته‌بندی هنگام کلیک خارج از آن
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -110,7 +109,7 @@ const Navbar = () => {
             {/* بخش کاربر و سبد خرید - فقط در دسکتاپ */}
             <div className="hidden md:flex items-center gap-4 lg:gap-8 mt-1">
               {/* حساب کاربری */}
-              <a className="flex items-center gap-4 lg:gap-8" href="/sign">
+              <a className="flex items-center gap-4 lg:gap-8" href="/login">
                 <div className="text-gray-900 p-3 hover:bg-gray-50 rounded-2xl transition-all duration-200 hover:shadow-sm">
                   <div className="flex gap-4">
                     <div>
@@ -300,7 +299,7 @@ const Navbar = () => {
 
             <a
               className="w-full focus:text-primary hover:text-primary justify-center inline-block text-center pt-2 pb-1 transition-all duration-200 active:scale-95"
-              href="/sign"
+              href="/login"
             >
               <div className="py-1">
                 <LuUser className="inline-block mb-1 text-lg" />

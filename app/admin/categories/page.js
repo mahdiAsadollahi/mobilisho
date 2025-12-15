@@ -1,111 +1,176 @@
-// app/admin/categories/page.js
 "use client";
 import { useState, useEffect } from "react";
 import CategoriesTable from "@/app/components/CategoriesTable/CategoriesTable";
 import CategoryModal from "@/app/components/CategoryModal/CategoryModal";
 import DeleteModal from "@/app/components/DeleteModal/DeleteModal";
 import { FiPlus } from "react-icons/fi";
-
-// داده‌های نمونه با آیکون‌های مرتبط با فروشگاه موبایل
-const initialCategories = [
-  {
-    id: 1,
-    title: "گوشی موبایل",
-    image: "/images/mobile-phones.jpg",
-    icon: "FiSmartphone",
-    isActive: true,
-    createdAt: "2024-01-15",
-    productCount: 45,
-  },
-  {
-    id: 2,
-    title: "لوازم جانبی",
-    image: "/images/accessories.jpg",
-    icon: "FiHeadphones",
-    isActive: true,
-    createdAt: "2024-01-10",
-    productCount: 32,
-  },
-  {
-    id: 3,
-    title: "مقالات آموزشی",
-    image: "/images/articles.jpg",
-    icon: "FiBook",
-    isActive: false,
-    createdAt: "2024-01-05",
-    productCount: 18,
-  },
-  {
-    id: 4,
-    title: "اخبار تکنولوژی",
-    image: "/images/news.jpg",
-    icon: "FiMonitor",
-    isActive: true,
-    createdAt: "2024-01-20",
-    productCount: 25,
-  },
-];
+import { toast } from "react-hot-toast";
 
 export default function CategoriesPage() {
-  const [categories, setCategories] = useState(initialCategories);
+  const [categories, setCategories] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+
+  // دریافت دسته‌بندی‌ها از API
+  const fetchCategories = async () => {
+    try {
+      setInitialLoading(true);
+      const response = await fetch("/api/categories");
+
+      if (!response.ok) {
+        throw new Error("خطا در دریافت دسته‌بندی‌ها");
+      }
+
+      const result = await response.json();
+      setCategories(result.data || []);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+      toast.error("خطا در دریافت دسته‌بندی‌ها");
+    } finally {
+      setInitialLoading(false);
+    }
+  };
+
+  // دریافت اولیه دسته‌بندی‌ها
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
   // عملیات افزودن دسته‌بندی
-  const handleAddCategory = (categoryData) => {
-    setLoading(true);
-    // شبیه‌سازی درخواست API
-    setTimeout(() => {
-      const newCategory = {
-        id: Math.max(...categories.map((c) => c.id)) + 1,
-        ...categoryData,
-        isActive: true,
-        productCount: 0,
-        createdAt: new Date().toISOString().split("T")[0],
-      };
-      setCategories((prev) => [newCategory, ...prev]);
-      setLoading(false);
+  const handleAddCategory = async (categoryData) => {
+    try {
+      setLoading(true);
+
+      const formData = new FormData();
+      formData.append("title", categoryData.title);
+      formData.append("icon", categoryData.icon);
+
+      if (categoryData.image && typeof categoryData.image !== "string") {
+        formData.append("img", categoryData.image);
+      }
+
+      const response = await fetch("/api/categories", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || "خطا در افزودن دسته‌بندی");
+      }
+
+      toast.success("دسته‌بندی با موفقیت افزوده شد");
+      await fetchCategories(); // دریافت مجدد لیست
       setIsModalOpen(false);
-    }, 1000);
+    } catch (error) {
+      console.error("Error adding category:", error);
+      toast.error(error.message || "خطا در افزودن دسته‌بندی");
+    } finally {
+      setLoading(false);
+    }
   };
 
   // عملیات ویرایش دسته‌بندی
-  const handleEditCategory = (categoryData) => {
-    setLoading(true);
-    setTimeout(() => {
-      setCategories((prev) =>
-        prev.map((cat) =>
-          cat.id === selectedCategory.id ? { ...cat, ...categoryData } : cat
-        )
-      );
-      setLoading(false);
+  const handleEditCategory = async (categoryData) => {
+    try {
+      setLoading(true);
+
+      const formData = new FormData();
+      formData.append("id", selectedCategory._id);
+      formData.append("title", categoryData.title);
+      formData.append("icon", categoryData.icon);
+
+      // اگر عکس جدید انتخاب شده
+      if (categoryData.image && typeof categoryData.image !== "string") {
+        formData.append("img", categoryData.image);
+      }
+
+      const response = await fetch("/api/categories", {
+        method: "PUT",
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || "خطا در ویرایش دسته‌بندی");
+      }
+
+      toast.success("دسته‌بندی با موفقیت ویرایش شد");
+      await fetchCategories(); // دریافت مجدد لیست
       setIsModalOpen(false);
       setSelectedCategory(null);
-    }, 1000);
+    } catch (error) {
+      console.error("Error editing category:", error);
+      toast.error(error.message || "خطا در ویرایش دسته‌بندی");
+    } finally {
+      setLoading(false);
+    }
   };
 
   // عملیات حذف دسته‌بندی
-  const handleDeleteCategory = () => {
-    setLoading(true);
-    setTimeout(() => {
-      setCategories((prev) =>
-        prev.filter((cat) => cat.id !== selectedCategory.id)
+  const handleDeleteCategory = async () => {
+    try {
+      setLoading(true);
+
+      const response = await fetch(
+        `/api/categories?id=${selectedCategory._id}`,
+        {
+          method: "DELETE",
+        }
       );
-      setLoading(false);
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || "خطا در حذف دسته‌بندی");
+      }
+
+      toast.success("دسته‌بندی با موفقیت حذف شد");
+      await fetchCategories(); // دریافت مجدد لیست
       setIsDeleteModalOpen(false);
       setSelectedCategory(null);
-    }, 1000);
+    } catch (error) {
+      console.error("Error deleting category:", error);
+      toast.error(error.message || "خطا در حذف دسته‌بندی");
+    } finally {
+      setLoading(false);
+    }
   };
 
   // عملیات تغییر وضعیت فعال/غیرفعال
-  const handleToggleStatus = (categoryId) => {
-    setCategories((prev) =>
-      prev.map((cat) =>
-        cat.id === categoryId ? { ...cat, isActive: !cat.isActive } : cat
-      )
-    );
+  const handleToggleStatus = async (categoryId) => {
+    try {
+      const category = categories.find((cat) => cat._id === categoryId);
+      if (!category) return;
+
+      const response = await fetch("/api/categories", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: categoryId,
+          isActive: !category.isActive,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || "خطا در تغییر وضعیت");
+      }
+
+      toast.success(`دسته‌بندی ${!category.isActive ? "فعال" : "غیرفعال"} شد`);
+      await fetchCategories(); // دریافت مجدد لیست
+    } catch (error) {
+      console.error("Error toggling status:", error);
+      toast.error(error.message || "خطا در تغییر وضعیت");
+    }
   };
 
   const openAddModal = () => {
@@ -122,6 +187,20 @@ export default function CategoriesPage() {
     setSelectedCategory(category);
     setIsDeleteModalOpen(true);
   };
+
+  // محاسبه آمار
+  const activeCategoriesCount = categories.filter((cat) => cat.isActive).length;
+
+  if (initialLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="mt-4 text-gray-600">در حال دریافت دسته‌بندی‌ها...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 md:p-6">
@@ -166,7 +245,7 @@ export default function CategoriesPage() {
             <div>
               <p className="text-gray-600 text-sm">دسته‌بندی‌های فعال</p>
               <p className="text-2xl font-bold text-gray-800">
-                {categories.filter((cat) => cat.isActive).length}
+                {activeCategoriesCount}
               </p>
             </div>
             <div className="p-2 bg-green-100 rounded-lg">
@@ -199,7 +278,7 @@ export default function CategoriesPage() {
       )}
 
       {/* مودال حذف */}
-      {isDeleteModalOpen && (
+      {isDeleteModalOpen && selectedCategory && (
         <DeleteModal
           isOpen={isDeleteModalOpen}
           onClose={() => {
@@ -208,7 +287,7 @@ export default function CategoriesPage() {
           }}
           onConfirm={handleDeleteCategory}
           title="حذف دسته‌بندی"
-          message={`آیا از حذف دسته‌بندی "${selectedCategory?.title}" اطمینان دارید؟`}
+          message={`آیا از حذف دسته‌بندی "${selectedCategory.title}" اطمینان دارید؟`}
           loading={loading}
         />
       )}

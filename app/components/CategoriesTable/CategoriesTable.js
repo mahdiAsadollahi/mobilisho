@@ -56,7 +56,7 @@ const CategoriesTable = ({
           <tbody className="divide-y divide-gray-200">
             {categories.map((category) => (
               <tr
-                key={category.id}
+                key={category._id}
                 className="hover:bg-gray-50 transition-colors"
               >
                 <td className="px-6 py-4">
@@ -79,7 +79,7 @@ const CategoriesTable = ({
                         {category.title}
                       </h3>
                       <p className="text-sm text-gray-500">
-                        شناسه: {category.id}
+                        شناسه: {category._id.substring(0, 8)}...
                       </p>
                     </div>
                   </div>
@@ -106,8 +106,11 @@ const CategoriesTable = ({
                 <td className="px-6 py-4">
                   <div className="flex justify-end">
                     <button
-                      onClick={() => onToggleStatus(category.id)}
+                      onClick={() => onToggleStatus(category._id)}
+                      disabled={loading}
                       className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                        loading ? "opacity-50 cursor-not-allowed" : ""
+                      } ${
                         category.isActive
                           ? "bg-green-100 text-green-800 hover:bg-green-200 border border-green-200"
                           : "bg-red-100 text-red-800 hover:bg-red-200 border border-red-200"
@@ -138,7 +141,10 @@ const CategoriesTable = ({
                   <div className="flex items-center justify-end gap-3">
                     <button
                       onClick={() => onEdit(category)}
-                      className="flex items-center gap-2 px-3 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-blue-200"
+                      disabled={loading}
+                      className={`flex items-center gap-2 px-3 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-blue-200 ${
+                        loading ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
                       title="ویرایش"
                     >
                       <FiEdit2 size={16} />
@@ -147,7 +153,10 @@ const CategoriesTable = ({
 
                     <button
                       onClick={() => onDelete(category)}
-                      className="flex items-center gap-2 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-red-200"
+                      disabled={loading}
+                      className={`flex items-center gap-2 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-red-200 ${
+                        loading ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
                       title="حذف"
                     >
                       <FiTrash2 size={16} />

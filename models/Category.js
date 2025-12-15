@@ -1,22 +1,28 @@
-const { default: mongoose } = require("mongoose");
+import mongoose from "mongoose";
 
-const schema = new mongoose.Schema(
+const categorySchema = new mongoose.Schema(
   {
-    image: {
-      type: String,
-      required: true,
-    },
     title: {
       type: String,
       required: true,
+      trim: true,
+    },
+    image: {
+      type: String,
+      default: "",
     },
     icon: {
       type: String,
       required: true,
+      default: "FiSmartphone",
     },
     isActive: {
       type: Boolean,
-      required: true,
+      default: true,
+    },
+    productCount: {
+      type: Number,
+      default: 0,
     },
   },
   {
@@ -24,6 +30,7 @@ const schema = new mongoose.Schema(
   }
 );
 
-const model = mongoose.models("Category") || mongoose.model("Category", schema);
+const model =
+  mongoose.models.Category || mongoose.model("Category", categorySchema);
 
-module.exports = model;
+export default model;

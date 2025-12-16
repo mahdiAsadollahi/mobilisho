@@ -1,6 +1,6 @@
-const { default: mongoose } = require("mongoose");
+import mongoose from "mongoose";
 
-const schema = new mongoose.Schema(
+const productSchema = new mongoose.Schema(
   {
     name: {
       type: String,
@@ -17,24 +17,46 @@ const schema = new mongoose.Schema(
     },
     price: {
       type: Number,
-      rqeuired: true,
+      required: true,
     },
     stock: {
       type: Number,
       required: true,
     },
-    categoryID: {
+    categoryId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Category",
       required: true,
     },
-    specifications: [{ key: String, vlaue: String }],
-    variations: {
-      type: String,
-      value: String,
-      price: Number,
-      stock: Number,
-    },
+    specifications: [
+      {
+        key: String,
+        value: String,
+      },
+    ],
+    variations: [
+      {
+        type: {
+          type: String,
+          required: true,
+        },
+        value: {
+          type: String,
+          required: true,
+        },
+        price: {
+          type: Number,
+          required: true,
+        },
+        stock: {
+          type: Number,
+          default: 0,
+        },
+        sku: {
+          type: String,
+        },
+      },
+    ],
     images: [String],
     isActive: {
       type: Boolean,
@@ -46,6 +68,6 @@ const schema = new mongoose.Schema(
   }
 );
 
-const model = mongoose.models.Product || mongoose.model("Product", schema);
-
+const model =
+  mongoose.models.Product || mongoose.model("Product", productSchema);
 export default model;

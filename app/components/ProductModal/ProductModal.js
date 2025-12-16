@@ -1,4 +1,3 @@
-// app/admin/products/components/ProductModal.js
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { FiX, FiUpload, FiPlus, FiTrash2 } from "react-icons/fi";
@@ -6,21 +5,23 @@ import ProductVariants from "@/app/components/ProductVariants/ProductVariants";
 import ProductSpecifications from "@/app/components/ProductSpecifications/ProductSpecifications";
 import dynamic from "next/dynamic";
 
-// بارگذاری CKEditor به صورت داینامیک
-const CKEditor = dynamic(() => import("@/app/components/ui/CKEditor/CKEditor"), {
-  ssr: false,
-  loading: () => <div>در حال بارگذاری ویرایشگر...</div>,
-});
+const CKEditor = dynamic(
+  () => import("@/app/components/ui/CKEditor/CKEditor"),
+  {
+    ssr: false,
+    loading: () => <div>در حال بارگذاری ویرایشگر...</div>,
+  }
+);
 
 const ProductModal = ({ product, categories, onClose, onSubmit, loading }) => {
   const [formData, setFormData] = useState({
-    title: "",
+    name: "",
     description: "",
     price: "",
     stock: "",
-    category: "",
+    categoryId: "",
     specifications: [],
-    variants: [],
+    variations: [],
     images: [],
   });
 
@@ -28,24 +29,53 @@ const ProductModal = ({ product, categories, onClose, onSubmit, loading }) => {
   const [activeTab, setActiveTab] = useState("basic");
   const fileInputRef = useRef(null);
 
+  // حالت اولیه برای محصول جدید
+  const initializeForNewProduct = () => {
+    setFormData({
+      name: "",
+      description: "",
+      price: "",
+      stock: "0",
+      categoryId: categories.length > 0 ? categories[0]._id : "",
+      specifications: [],
+      variations: [],
+      images: [],
+    });
+    setImagePreviews([]);
+  };
+
+  // حالت برای ویرایش محصول موجود
+  const initializeForExistingProduct = (productData) => {
+    console.log("Initializing modal with product data:", productData);
+
+    // اطمینان از اینکه specifications و variations آرایه هستند
+    const safeSpecifications = Array.isArray(productData.specifications)
+      ? productData.specifications
+      : [];
+
+    const safeVariations = Array.isArray(productData.variations)
+      ? productData.variations
+      : [];
+
+    setFormData({
+      name: productData.name || "",
+      description: productData.description || "",
+      price: productData.price?.toString() || "",
+      stock: productData.stock?.toString() || "0",
+      categoryId: productData.categoryId?._id || productData.categoryId || "",
+      specifications: safeSpecifications,
+      variations: safeVariations,
+      images: productData.images || [],
+    });
+
+    setImagePreviews(productData.images || []);
+  };
+
   useEffect(() => {
     if (product) {
-      setFormData({
-        title: product.title || "",
-        description: product.description || "",
-        price: product.price || "",
-        stock: product.stock || "",
-        category: product.category || "",
-        specifications: product.specifications || [],
-        variants: product.variants || [],
-        images: product.images || [],
-      });
-      setImagePreviews(product.images || []);
+      initializeForExistingProduct(product);
     } else {
-      setFormData((prev) => ({
-        ...prev,
-        category: categories[0] || "",
-      }));
+      initializeForNewProduct();
     }
   }, [product, categories]);
 
@@ -58,6 +88,7 @@ const ProductModal = ({ product, categories, onClose, onSubmit, loading }) => {
       stock: parseInt(formData.stock) || 0,
     };
 
+    console.log("Submitting product data:", submitData);
     onSubmit(submitData);
   };
 
@@ -78,19 +109,27 @@ const ProductModal = ({ product, categories, onClose, onSubmit, loading }) => {
   };
 
   const removeImage = (index) => {
-    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
-    setFormData((prev) => ({
-      ...prev,
-      images: prev.images.filter((_, i) => i !== index),
-    }));
+    const isFile = formData.images[index] instanceof File;
+
+    if (isFile) {
+      // اگر فایل جدید است، فقط از state حذف کن
+      setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+      setFormData((prev) => ({
+        ...prev,
+        images: prev.images.filter((_, i) => i !== index),
+      }));
+    } else {
+      // اگر URL قدیمی است، فقط از پیش‌نمایش حذف کن اما در images نگه دار
+      setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+    }
   };
 
   const triggerFileInput = () => {
     fileInputRef.current?.click();
   };
 
-  const handleVariantsChange = (variants) => {
-    setFormData((prev) => ({ ...prev, variants }));
+  const handleVariantsChange = (variations) => {
+    setFormData((prev) => ({ ...prev, variations }));
   };
 
   const handleSpecificationsChange = (specifications) => {
@@ -107,7 +146,6 @@ const ProductModal = ({ product, categories, onClose, onSubmit, loading }) => {
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
-        {/* هدر مودال */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <h2 className="text-lg font-bold text-gray-800">
             {product ? "ویرایش محصول" : "افزودن محصول جدید"}
@@ -115,12 +153,12 @@ const ProductModal = ({ product, categories, onClose, onSubmit, loading }) => {
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            disabled={loading}
           >
             <FiX size={20} />
           </button>
         </div>
 
-        {/* تب‌ها */}
         <div className="border-b border-gray-200">
           <div className="flex overflow-x-auto">
             {tabs.map((tab) => (
@@ -139,25 +177,23 @@ const ProductModal = ({ product, categories, onClose, onSubmit, loading }) => {
           </div>
         </div>
 
-        {/* بدنه مودال */}
         <form
           onSubmit={handleSubmit}
           className="p-6 overflow-y-auto max-h-[60vh]"
         >
-          {/* تب اطلاعات پایه */}
           {activeTab === "basic" && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    عنوان محصول *
+                    نام محصول *
                   </label>
                   <input
                     type="text"
-                    value={formData.title}
-                    onChange={(e) => handleChange("title", e.target.value)}
+                    value={formData.name}
+                    onChange={(e) => handleChange("name", e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="عنوان کامل محصول"
+                    placeholder="نام کامل محصول"
                     required
                   />
                 </div>
@@ -167,15 +203,15 @@ const ProductModal = ({ product, categories, onClose, onSubmit, loading }) => {
                     دسته‌بندی *
                   </label>
                   <select
-                    value={formData.category}
-                    onChange={(e) => handleChange("category", e.target.value)}
+                    value={formData.categoryId}
+                    onChange={(e) => handleChange("categoryId", e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     required
                   >
                     <option value="">انتخاب دسته‌بندی</option>
                     {categories.map((category) => (
-                      <option key={category} value={category}>
-                        {category}
+                      <option key={category._id} value={category._id}>
+                        {category.title}
                       </option>
                     ))}
                   </select>
@@ -196,7 +232,7 @@ const ProductModal = ({ product, categories, onClose, onSubmit, loading }) => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    قیمت اصلی (تومان) *
+                    قیمت (تومان) *
                   </label>
                   <input
                     type="number"
@@ -205,12 +241,13 @@ const ProductModal = ({ product, categories, onClose, onSubmit, loading }) => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder="25000000"
                     required
+                    min="0"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    موجودی *
+                    موجودی پایه *
                   </label>
                   <input
                     type="number"
@@ -219,31 +256,59 @@ const ProductModal = ({ product, categories, onClose, onSubmit, loading }) => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder="10"
                     required
+                    min="0"
                   />
                 </div>
               </div>
             </div>
           )}
 
-          {/* تب مشخصات فنی */}
           {activeTab === "specs" && (
-            <ProductSpecifications
-              specifications={formData.specifications}
-              onChange={handleSpecificationsChange}
-            />
+            <div>
+              <div className="mb-4">
+                <h3 className="text-sm font-medium text-gray-700">
+                  مشخصات فنی محصول
+                </h3>
+                <p className="text-xs text-gray-500 mt-1">
+                  کلید و مقدار مشخصات فنی محصول را وارد کنید
+                </p>
+              </div>
+              <ProductSpecifications
+                specifications={formData.specifications}
+                onChange={handleSpecificationsChange}
+              />
+            </div>
           )}
 
-          {/* تب تنوع محصول */}
           {activeTab === "variants" && (
-            <ProductVariants
-              variants={formData.variants}
-              onChange={handleVariantsChange}
-            />
+            <div>
+              <div className="mb-4">
+                <h3 className="text-sm font-medium text-gray-700">
+                  تنوع‌های محصول
+                </h3>
+                <p className="text-xs text-gray-500 mt-1">
+                  تنوع‌های مختلف محصول مانند رنگ، سایز و ... را تعریف کنید
+                </p>
+              </div>
+              <ProductVariants
+                variants={formData.variations}
+                onChange={handleVariantsChange}
+              />
+            </div>
           )}
 
-          {/* تب تصاویر */}
           {activeTab === "images" && (
             <div className="space-y-6">
+              <div className="mb-4">
+                <h3 className="text-sm font-medium text-gray-700">
+                  تصاویر محصول
+                </h3>
+                <p className="text-xs text-gray-500 mt-1">
+                  برای آپلود تصاویر جدید کلیک کنید یا برای حذف روی × تصویر کلیک
+                  کنید
+                </p>
+              </div>
+
               <input
                 type="file"
                 ref={fileInputRef}
@@ -264,12 +329,11 @@ const ProductModal = ({ product, categories, onClose, onSubmit, loading }) => {
                     کلیک کنید برای آپلود تصاویر
                   </span>
                   <span className="text-xs text-gray-500">
-                    PNG, JPG, WEBP (حداکثر 5MB هر تصویر)
+                    PNG, JPG, WEBP (حداکثر 2MB هر تصویر)
                   </span>
                 </div>
               </button>
 
-              {/* پیش‌نمایش تصاویر */}
               {imagePreviews.length > 0 && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {imagePreviews.map((preview, index) => (
@@ -283,18 +347,31 @@ const ProductModal = ({ product, categories, onClose, onSubmit, loading }) => {
                         type="button"
                         onClick={() => removeImage(index)}
                         className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="حذف تصویر"
                       >
                         <FiTrash2 size={14} />
                       </button>
+                      <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                        {index + 1}
+                      </div>
                     </div>
                   ))}
+                </div>
+              )}
+
+              {imagePreviews.length === 0 && (
+                <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
+                  <FiUpload className="mx-auto text-gray-400 mb-3" size={32} />
+                  <p>هنوز تصویری آپلود نشده است</p>
+                  <p className="text-sm mt-1">
+                    برای افزودن تصاویر محصول، روی دکمه بالا کلیک کنید
+                  </p>
                 </div>
               )}
             </div>
           )}
         </form>
 
-        {/* فوتر مودال */}
         <div className="flex items-center justify-between p-6 border-t border-gray-200 bg-gray-50">
           <div className="flex items-center gap-3">
             {tabs.map((tab, index) => (
@@ -318,19 +395,20 @@ const ProductModal = ({ product, categories, onClose, onSubmit, loading }) => {
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="px-6 py-2 text-gray-600 hover:text-gray-800 transition-colors border border-gray-300 rounded-lg hover:bg-gray-100"
+              className="px-6 py-2 text-gray-600 hover:text-gray-800 transition-colors border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50"
             >
               انصراف
             </button>
             <button
-              type="submit"
+              type="button"
               onClick={handleSubmit}
               disabled={
                 loading ||
-                !formData.title ||
+                !formData.name ||
                 !formData.price ||
                 !formData.stock ||
-                !formData.category
+                !formData.categoryId ||
+                formData.images.length === 0
               }
               className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
             >
@@ -347,7 +425,6 @@ const ProductModal = ({ product, categories, onClose, onSubmit, loading }) => {
         </div>
       </div>
 
-      {/* کلیک خارج از مودال */}
       <div className="absolute inset-0 -z-10" onClick={onClose} />
     </div>
   );

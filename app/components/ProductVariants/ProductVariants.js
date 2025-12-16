@@ -1,32 +1,29 @@
-// app/admin/products/components/ProductVariants.js
 "use client";
 import { useState } from "react";
 import { FiPlus, FiTrash2 } from "react-icons/fi";
 
 const ProductVariants = ({ variants, onChange }) => {
   const [newVariant, setNewVariant] = useState({
-    attribute: "", // نوع ویژگی (مثلاً رنگ، سایز، مدل و...)
-    value: "", // مقدار ویژگی (مثلاً قرمز، بزرگ، 2024 و...)
+    type: "",
+    value: "",
     price: "",
     stock: "",
     sku: "",
   });
 
   const addVariant = () => {
-    if (newVariant.attribute && newVariant.value && newVariant.price) {
+    if (newVariant.type && newVariant.value && newVariant.price) {
       const variant = {
-        attribute: newVariant.attribute,
+        type: newVariant.type,
         value: newVariant.value,
         price: parseInt(newVariant.price),
         stock: parseInt(newVariant.stock) || 0,
-        sku:
-          newVariant.sku ||
-          `VAR-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        sku: newVariant.sku || `VAR-${Date.now()}`,
       };
 
       onChange([...variants, variant]);
       setNewVariant({
-        attribute: "",
+        type: "",
         value: "",
         price: "",
         stock: "",
@@ -48,7 +45,6 @@ const ProductVariants = ({ variants, onChange }) => {
 
   return (
     <div className="space-y-6">
-      {/* فرم افزودن تنوع جدید */}
       <div className="bg-gray-50 rounded-lg p-4">
         <h4 className="text-sm font-medium text-gray-700 mb-3">
           افزودن تنوع جدید
@@ -56,11 +52,11 @@ const ProductVariants = ({ variants, onChange }) => {
         <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
           <input
             type="text"
-            value={newVariant.attribute}
+            value={newVariant.type}
             onChange={(e) =>
-              setNewVariant((prev) => ({ ...prev, attribute: e.target.value }))
+              setNewVariant((prev) => ({ ...prev, type: e.target.value }))
             }
-            placeholder="نوع ویژگی (مثلاً: رنگ)"
+            placeholder="نوع (مثلاً: رنگ)"
             className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
           />
           <input
@@ -69,7 +65,7 @@ const ProductVariants = ({ variants, onChange }) => {
             onChange={(e) =>
               setNewVariant((prev) => ({ ...prev, value: e.target.value }))
             }
-            placeholder="مقدار ویژگی (مثلاً: قرمز)"
+            placeholder="مقدار (مثلاً: قرمز)"
             className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
           />
           <input
@@ -96,22 +92,17 @@ const ProductVariants = ({ variants, onChange }) => {
             onChange={(e) =>
               setNewVariant((prev) => ({ ...prev, sku: e.target.value }))
             }
-            placeholder="SKU (کد انبارداری)"
+            placeholder="SKU"
             className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
           />
         </div>
         <div className="mt-3 text-xs text-gray-500">
-          <p>
-            SKU: کد یکتای شناسایی محصول در انبار - در صورت خالی گذاشتن، به صورت
-            خودکار تولید می‌شود
-          </p>
+          <p>SKU: کد یکتای شناسایی تنوع محصول</p>
         </div>
         <button
           type="button"
           onClick={addVariant}
-          disabled={
-            !newVariant.attribute || !newVariant.value || !newVariant.price
-          }
+          disabled={!newVariant.type || !newVariant.value || !newVariant.price}
           className="mt-3 flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
         >
           <FiPlus size={16} />
@@ -119,7 +110,6 @@ const ProductVariants = ({ variants, onChange }) => {
         </button>
       </div>
 
-      {/* لیست تنوع‌های موجود */}
       {variants.length > 0 ? (
         <div className="space-y-3">
           <h4 className="text-sm font-medium text-gray-700">تنوع‌های موجود</h4>
@@ -131,12 +121,10 @@ const ProductVariants = ({ variants, onChange }) => {
               <div className="flex-1 grid grid-cols-1 md:grid-cols-5 gap-3">
                 <input
                   type="text"
-                  value={variant.attribute}
-                  onChange={(e) =>
-                    updateVariant(index, "attribute", e.target.value)
-                  }
+                  value={variant.type}
+                  onChange={(e) => updateVariant(index, "type", e.target.value)}
                   className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                  placeholder="نوع ویژگی"
+                  placeholder="نوع"
                 />
                 <input
                   type="text"
@@ -145,7 +133,7 @@ const ProductVariants = ({ variants, onChange }) => {
                     updateVariant(index, "value", e.target.value)
                   }
                   className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                  placeholder="مقدار ویژگی"
+                  placeholder="مقدار"
                 />
                 <input
                   type="number"

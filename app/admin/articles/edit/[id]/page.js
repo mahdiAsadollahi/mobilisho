@@ -11,7 +11,7 @@ import {
   FiSave,
   FiEye,
 } from "react-icons/fi";
-import SimpleEditor from "@/app/components/ui/SimpleEditor/SimpleEditor";
+import CustomCKEditor from "@/app/components/ui/CKEditor/CKEditor";
 
 // داده‌های نمونه مقالات (همانند صفحه پیش‌نمایش)
 const sampleArticles = {
@@ -146,7 +146,7 @@ const memoizedCallback = useCallback(() => { doSomething(a, b); }, [a, b]);</cod
   },
 };
 
-const categories = [
+const suggestedCategories = [
   "آموزش برنامه‌نویسی",
   "تکنولوژی",
   "اخبار",
@@ -162,7 +162,7 @@ export default function EditArticlePage({ params }) {
     content: "",
     mainImage: "",
     tags: [],
-    category: categories[0],
+    category: "",
     status: "draft",
     readTime: "",
     author: "مدیر سایت",
@@ -174,6 +174,8 @@ export default function EditArticlePage({ params }) {
   const [loading, setLoading] = useState(false);
   const [article, setArticle] = useState(null);
   const fileInputRef = useRef(null);
+  const [showCategorySuggestions, setShowCategorySuggestions] = useState(false);
+  const [categoryInput, setCategoryInput] = useState("");
 
   // دریافت مقاله بر اساس ID
   useEffect(() => {
@@ -201,6 +203,7 @@ export default function EditArticlePage({ params }) {
         seoDescription: foundArticle.summary,
       });
       setImagePreview(foundArticle.mainImage);
+      setCategoryInput(foundArticle.category);
     };
 
     fetchArticle();
@@ -279,6 +282,22 @@ export default function EditArticlePage({ params }) {
     }
   };
 
+  const handleCategoryChange = (value) => {
+    setCategoryInput(value);
+    handleChange("category", value);
+    setShowCategorySuggestions(value.length > 0);
+  };
+
+  const handleCategorySelect = (category) => {
+    setCategoryInput(category);
+    handleChange("category", category);
+    setShowCategorySuggestions(false);
+  };
+
+  const filteredCategories = suggestedCategories.filter((category) =>
+    category.toLowerCase().includes(categoryInput.toLowerCase())
+  );
+
   if (!article) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -291,7 +310,7 @@ export default function EditArticlePage({ params }) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
+    <div className="min-h-screen bg-gray-50 p-4 md:p-6 pb-24">
       {/* هدر صفحه */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
         <div>
@@ -321,7 +340,7 @@ export default function EditArticlePage({ params }) {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="max-w-6xl mx-auto">
+      <form onSubmit={handleSubmit} className="max-w-6xl mx-auto mb-32">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* ستون اصلی */}
           <div className="lg:col-span-2 space-y-6">
@@ -360,7 +379,7 @@ export default function EditArticlePage({ params }) {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 محتوای مقاله *
               </label>
-              <SimpleEditor
+              <CustomCKEditor
                 value={formData.content}
                 onChange={(data) => handleChange("content", data)}
                 placeholder="محتوای کامل مقاله را اینجا بنویسید..."
@@ -384,6 +403,9 @@ export default function EditArticlePage({ params }) {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                     placeholder="عنوان برای سئو"
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    اگر خالی باشد، از عنوان مقاله استفاده می‌شود
+                  </p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -398,6 +420,9 @@ export default function EditArticlePage({ params }) {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                     placeholder="توضیحات متا برای سئو"
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    اگر خالی باشد، از خلاصه مقاله استفاده می‌شود
+                  </p>
                 </div>
               </div>
             </div>
@@ -426,22 +451,36 @@ export default function EditArticlePage({ params }) {
                   </select>
                 </div>
 
-                <div>
+                <div className="relative">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     دسته‌بندی *
                   </label>
-                  <select
-                    value={formData.category}
-                    onChange={(e) => handleChange("category", e.target.value)}
+                  <input
+                    type="text"
+                    value={categoryInput}
+                    onChange={(e) => handleCategoryChange(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    placeholder="دسته‌بندی مقاله را وارد کنید..."
                     required
-                  >
-                    {categories.map((category) => (
-                      <option key={category} value={category}>
-                        {category}
-                      </option>
-                    ))}
-                  </select>
+                  />
+                  {showCategorySuggestions && filteredCategories.length > 0 && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
+                      {filteredCategories.map((category, index) => (
+                        <button
+                          key={index}
+                          type="button"
+                          onClick={() => handleCategorySelect(category)}
+                          className="w-full text-right px-4 py-2 hover:bg-gray-100 transition-colors"
+                        >
+                          {category}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  <p className="text-xs text-gray-500 mt-1">
+                    می‌توانید دسته‌بندی جدید وارد کنید یا از پیشنهادات انتخاب
+                    کنید
+                  </p>
                 </div>
 
                 <div>
@@ -584,25 +623,13 @@ export default function EditArticlePage({ params }) {
                     {new Date(article.createdAt).toLocaleDateString("fa-IR")}
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span>بازدیدها:</span>
-                  <span className="font-medium">
-                    {article.views.toLocaleString()}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span>لایک‌ها:</span>
-                  <span className="font-medium">
-                    {article.likes.toLocaleString()}
-                  </span>
-                </div>
               </div>
             </div>
           </div>
         </div>
 
         {/* دکمه‌های اقدام */}
-        <div className="fixed bottom-6 left-6 right-6 bg-white border-t border-gray-200 p-4 rounded-xl shadow-lg">
+        <div className="fixed bottom-6 left-6 right-6 bg-white border-t border-gray-200 p-4 rounded-xl shadow-lg z-10">
           <div className="flex justify-between items-center">
             <button
               type="button"
@@ -616,7 +643,12 @@ export default function EditArticlePage({ params }) {
               <button
                 type="button"
                 onClick={handleSaveDraft}
-                disabled={loading || !formData.title || !formData.content}
+                disabled={
+                  loading ||
+                  !formData.title ||
+                  !formData.content ||
+                  !formData.category
+                }
                 className="px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
               >
                 <FiSave size={18} />
@@ -625,7 +657,12 @@ export default function EditArticlePage({ params }) {
 
               <button
                 type="submit"
-                disabled={loading || !formData.title || !formData.content}
+                disabled={
+                  loading ||
+                  !formData.title ||
+                  !formData.content ||
+                  !formData.category
+                }
                 className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
               >
                 {loading ? (

@@ -10,9 +10,9 @@ import {
   FiTag,
   FiSave,
 } from "react-icons/fi";
-import SimpleEditor from "@/app/components/ui/SimpleEditor/SimpleEditor";
+import CustomCKEditor from "@/app/components/ui/CKEditor/CKEditor";
 
-const categories = [
+const suggestedCategories = [
   "آموزش برنامه‌نویسی",
   "تکنولوژی",
   "اخبار",
@@ -28,7 +28,7 @@ export default function CreateArticlePage() {
     content: "",
     mainImage: "",
     tags: [],
-    category: categories[0],
+    category: "",
     status: "draft",
     readTime: "",
     author: "مدیر سایت",
@@ -39,6 +39,8 @@ export default function CreateArticlePage() {
   const [imagePreview, setImagePreview] = useState("");
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef(null);
+  const [showCategorySuggestions, setShowCategorySuggestions] = useState(false);
+  const [categoryInput, setCategoryInput] = useState("");
 
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -86,26 +88,50 @@ export default function CreateArticlePage() {
     e.preventDefault();
     setLoading(true);
 
+    // تنظیم خودکار عنوان و توضیحات سئو اگر خالی باشند
+    const finalData = {
+      ...formData,
+      seoTitle: formData.seoTitle || formData.title,
+      seoDescription: formData.seoDescription || formData.summary,
+    };
+
     // شبیه‌سازی ارسال داده
     setTimeout(() => {
-      console.log("Article data:", formData);
+      console.log("Article data:", finalData);
       setLoading(false);
+      alert("مقاله با موفقیت ایجاد شد!");
       router.push("/admin/articles");
     }, 2000);
   };
 
   const handleSaveDraft = () => {
     handleChange("status", "draft");
-    // ذخیره به عنوان پیش‌نویس
+    handleSubmit(new Event("submit"));
   };
 
   const handlePublish = () => {
     handleChange("status", "published");
-    // انتشار مقاله
+    handleSubmit(new Event("submit"));
   };
 
+  const handleCategoryChange = (value) => {
+    setCategoryInput(value);
+    handleChange("category", value);
+    setShowCategorySuggestions(value.length > 0);
+  };
+
+  const handleCategorySelect = (category) => {
+    setCategoryInput(category);
+    handleChange("category", category);
+    setShowCategorySuggestions(false);
+  };
+
+  const filteredCategories = suggestedCategories.filter((category) =>
+    category.toLowerCase().includes(categoryInput.toLowerCase())
+  );
+
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
+    <div className="min-h-screen bg-gray-50 p-4 md:p-6 pb-24">
       {/* هدر صفحه */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
         <div>
@@ -128,7 +154,7 @@ export default function CreateArticlePage() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="max-w-6xl mx-auto">
+      <form onSubmit={handleSubmit} className="max-w-6xl mx-auto mb-32">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* ستون اصلی */}
           <div className="lg:col-span-2 space-y-6">
@@ -167,11 +193,52 @@ export default function CreateArticlePage() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 محتوای مقاله *
               </label>
-              <SimpleEditor
+              <CustomCKEditor
                 value={formData.content}
                 onChange={(data) => handleChange("content", data)}
                 placeholder="محتوای کامل مقاله را اینجا بنویسید..."
               />
+            </div>
+
+            {/* سئو */}
+            <div className="bg-white rounded-xl p-6 shadow">
+              <h3 className="text-lg font-medium text-gray-800 mb-4">
+                تنظیمات سئو
+              </h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    عنوان سئو
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.seoTitle}
+                    onChange={(e) => handleChange("seoTitle", e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    placeholder="عنوان برای سئو"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    اگر خالی باشد، از عنوان مقاله استفاده می‌شود
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    توضیحات سئو
+                  </label>
+                  <textarea
+                    value={formData.seoDescription}
+                    onChange={(e) =>
+                      handleChange("seoDescription", e.target.value)
+                    }
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    placeholder="توضیحات متا برای سئو"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    اگر خالی باشد، از خلاصه مقاله استفاده می‌شود
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -198,22 +265,36 @@ export default function CreateArticlePage() {
                   </select>
                 </div>
 
-                <div>
+                <div className="relative">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     دسته‌بندی *
                   </label>
-                  <select
-                    value={formData.category}
-                    onChange={(e) => handleChange("category", e.target.value)}
+                  <input
+                    type="text"
+                    value={categoryInput}
+                    onChange={(e) => handleCategoryChange(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    placeholder="دسته‌بندی مقاله را وارد کنید..."
                     required
-                  >
-                    {categories.map((category) => (
-                      <option key={category} value={category}>
-                        {category}
-                      </option>
-                    ))}
-                  </select>
+                  />
+                  {showCategorySuggestions && filteredCategories.length > 0 && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
+                      {filteredCategories.map((category, index) => (
+                        <button
+                          key={index}
+                          type="button"
+                          onClick={() => handleCategorySelect(category)}
+                          className="w-full text-right px-4 py-2 hover:bg-gray-100 transition-colors"
+                        >
+                          {category}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  <p className="text-xs text-gray-500 mt-1">
+                    می‌توانید دسته‌بندی جدید وارد کنید یا از پیشنهادات انتخاب
+                    کنید
+                  </p>
                 </div>
 
                 <div>
@@ -343,7 +424,7 @@ export default function CreateArticlePage() {
         </div>
 
         {/* دکمه‌های اقدام */}
-        <div className="fixed bottom-6 left-6 right-6 bg-white border-t border-gray-200 p-4 rounded-xl shadow-lg">
+        <div className="fixed bottom-6 left-6 right-6 bg-white border-t border-gray-200 p-4 rounded-xl shadow-lg z-10">
           <div className="flex justify-between items-center">
             <button
               type="button"
@@ -357,7 +438,12 @@ export default function CreateArticlePage() {
               <button
                 type="button"
                 onClick={handleSaveDraft}
-                disabled={loading || !formData.title || !formData.content}
+                disabled={
+                  loading ||
+                  !formData.title ||
+                  !formData.content ||
+                  !formData.category
+                }
                 className="px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
               >
                 <FiSave size={18} />
@@ -366,7 +452,12 @@ export default function CreateArticlePage() {
 
               <button
                 type="submit"
-                disabled={loading || !formData.title || !formData.content}
+                disabled={
+                  loading ||
+                  !formData.title ||
+                  !formData.content ||
+                  !formData.category
+                }
                 className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
               >
                 {loading ? (

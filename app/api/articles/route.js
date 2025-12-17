@@ -76,6 +76,8 @@ export async function POST(req) {
     const formData = await req.formData();
     console.log("ARTICLE POST DATA -> ", formData);
 
+    let uploadedImage = null;
+
     const title = formData.get("title")?.toString().trim();
     const summary = formData.get("summary")?.toString().trim();
     const content = formData.get("content")?.toString().trim();
@@ -135,6 +137,7 @@ export async function POST(req) {
         );
       }
       uploadedImage = result.fileUrl;
+
       console.log("POST Article - Uploaded image:", uploadedImage);
     } catch (uploadError) {
       console.error("POST Article - Image upload error:", uploadError);
@@ -219,7 +222,7 @@ export async function POST(req) {
     return Response.json(
       {
         success: false,
-        message: "خطا در ساخت محصول",
+        message: "خطا در ساخت مقاله",
         error: err,
       },
       {

@@ -1,10 +1,36 @@
 // components/ui/CKEditor/CKEditor.js
 "use client";
 
-import { CKEditor } from "@ckeditor/ckeditor5-react";
-import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
+import { useState, useEffect } from "react";
 
 const CustomCKEditor = ({ value, onChange, placeholder }) => {
+  const [isClient, setIsClient] = useState(false);
+  const [Editor, setEditor] = useState(null);
+
+  useEffect(() => {
+    setIsClient(true);
+
+    // بارگذاری داینامیک CKEditor
+    import("@ckeditor/ckeditor5-react").then(({ CKEditor }) => {
+      import("@ckeditor/ckeditor5-build-classic").then((ClassicEditor) => {
+        setEditor(() => (props) => (
+          <CKEditor editor={ClassicEditor.default} {...props} />
+        ));
+      });
+    });
+  }, []);
+
+  if (!isClient || !Editor) {
+    return (
+      <div className="min-h-[400px] border border-gray-300 rounded-lg p-6 bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+          <p className="text-gray-500 text-sm">در حال بارگذاری ویرایشگر...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="ckeditor-container rounded-lg overflow-hidden border border-gray-300 hover:border-gray-400 transition-colors">
       <style jsx>{`
@@ -47,8 +73,7 @@ const CustomCKEditor = ({ value, onChange, placeholder }) => {
         }
       `}</style>
 
-      <CKEditor
-        editor={ClassicEditor}
+      <Editor
         data={value}
         onChange={(event, editor) => {
           const data = editor.getData();

@@ -11,6 +11,7 @@ import {
   FiSave,
 } from "react-icons/fi";
 import CustomCKEditor from "@/app/components/ui/CKEditor/CKEditor";
+import toast from "react-hot-toast";
 
 const suggestedCategories = [
   "آموزش برنامه‌نویسی",
@@ -18,6 +19,19 @@ const suggestedCategories = [
   "اخبار",
   "طراحی وب",
   "هوش مصنوعی",
+];
+
+const fixedCategories = [
+  "آموزش برنامه‌نویسی",
+  "تکنولوژی",
+  "اخبار",
+  "طراحی وب",
+  "هوش مصنوعی",
+  "امنیت",
+  "موبایل",
+  "بازی‌سازی",
+  "شبکه",
+  "دیتابیس",
 ];
 
 export default function CreateArticlePage() {
@@ -39,8 +53,6 @@ export default function CreateArticlePage() {
   const [imagePreview, setImagePreview] = useState("");
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef(null);
-  const [showCategorySuggestions, setShowCategorySuggestions] = useState(false);
-  const [categoryInput, setCategoryInput] = useState("");
 
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -84,51 +96,85 @@ export default function CreateArticlePage() {
     setFormData((prev) => ({ ...prev, mainImage: "" }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e, status) => {
     e.preventDefault();
     setLoading(true);
 
-    // تنظیم خودکار عنوان و توضیحات سئو اگر خالی باشند
-    const finalData = {
-      ...formData,
-      seoTitle: formData.seoTitle || formData.title,
-      seoDescription: formData.seoDescription || formData.summary,
-    };
+    const formDataToSend = new FormData();
 
-    // شبیه‌سازی ارسال داده
-    setTimeout(() => {
-      console.log("Article data:", finalData);
+    formDataToSend.append("title", formData.title.trim());
+    formDataToSend.append("summary", formData.summary.trim());
+    formDataToSend.append("content", formData.content.trim());
+    formDataToSend.append("category", formData.category.trim());
+    formDataToSend.append("readingTime", formData.readTime);
+    formDataToSend.append("author", formData.author.trim());
+    formDataToSend.append("seoTitle", formData.seoTitle || formData.title);
+    formDataToSend.append(
+      "seoDescription",
+      formData.seoDescription || formData.summary
+    );
+    formDataToSend.append("status", status);
+
+    if (formData.tags.length > 0) {
+      formDataToSend.append("tags", JSON.stringify(formData.tags));
+    } else {
+      formDataToSend.append("tags", JSON.stringify([]));
+    }
+
+    if (formData.mainImage) {
+      if (typeof formData.mainImage === "object") {
+        formDataToSend.append("image", formData.mainImage);
+      } else if (
+        typeof formData.mainImage === "string" &&
+        formData.mainImage.startsWith("http")
+      ) {
+        formDataToSend.append("image", formData.mainImage);
+      }
+    }
+
+    try {
+      const response = await fetch("/api/articles", {
+        method: "POST",
+        body: formDataToSend,
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || "خطا در ارسال اطلاعات");
+      }
+
+      if (result.success) {
+        toast.success(
+          "مقاله با موفقیت " +
+            (status === "published" ? "منتشر" : "ذخیره") +
+            " شد!"
+        );
+        router.push("/admin/articles");
+      } else {
+        if (result.errors && result.errors.length > 0) {
+          toast.error("خطاهای اعتبارسنجی:\n" + result.errors.join("\n"));
+        } else {
+          toast.error(result.message || "خطایی رخ داده است");
+        }
+      }
+    } catch (error) {
+      console.error("Error submitting article:", error);
+      toast.error("خطا در ارسال مقاله: " + error.message);
+    } finally {
       setLoading(false);
-      alert("مقاله با موفقیت ایجاد شد!");
-      router.push("/admin/articles");
-    }, 2000);
+    }
   };
 
-  const handleSaveDraft = () => {
-    handleChange("status", "draft");
-    handleSubmit(new Event("submit"));
+  const handleSaveDraft = (e) => {
+    e.preventDefault();
+    handleSubmit(e, "draft");
   };
 
-  const handlePublish = () => {
-    handleChange("status", "published");
-    handleSubmit(new Event("submit"));
+  const handlePublish = (e) => {
+    e.preventDefault();
+    handleSubmit(e, "published");
   };
-
-  const handleCategoryChange = (value) => {
-    setCategoryInput(value);
-    handleChange("category", value);
-    setShowCategorySuggestions(value.length > 0);
-  };
-
-  const handleCategorySelect = (category) => {
-    setCategoryInput(category);
-    handleChange("category", category);
-    setShowCategorySuggestions(false);
-  };
-
-  const filteredCategories = suggestedCategories.filter((category) =>
-    category.toLowerCase().includes(categoryInput.toLowerCase())
-  );
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6 pb-24">
@@ -154,7 +200,7 @@ export default function CreateArticlePage() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="max-w-6xl mx-auto mb-32">
+      <form className="max-w-6xl mx-auto mb-32">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* ستون اصلی */}
           <div className="lg:col-span-2 space-y-6">
@@ -269,31 +315,23 @@ export default function CreateArticlePage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     دسته‌بندی *
                   </label>
-                  <input
-                    type="text"
-                    value={categoryInput}
-                    onChange={(e) => handleCategoryChange(e.target.value)}
+
+                  <select
+                    value={formData.category}
+                    onChange={(e) => handleChange("category", e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                    placeholder="دسته‌بندی مقاله را وارد کنید..."
                     required
-                  />
-                  {showCategorySuggestions && filteredCategories.length > 0 && (
-                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
-                      {filteredCategories.map((category, index) => (
-                        <button
-                          key={index}
-                          type="button"
-                          onClick={() => handleCategorySelect(category)}
-                          className="w-full text-right px-4 py-2 hover:bg-gray-100 transition-colors"
-                        >
-                          {category}
-                        </button>
-                      ))}
-                    </div>
-                  )}
+                  >
+                    <option value="">انتخاب دسته‌بندی</option>
+                    {fixedCategories.map((category, index) => (
+                      <option key={index} value={category}>
+                        {category}
+                      </option>
+                    ))}
+                  </select>
+
                   <p className="text-xs text-gray-500 mt-1">
-                    می‌توانید دسته‌بندی جدید وارد کنید یا از پیشنهادات انتخاب
-                    کنید
+                    فقط می‌توانید از دسته‌بندی‌های موجود انتخاب کنید
                   </p>
                 </div>
 
@@ -436,7 +474,7 @@ export default function CreateArticlePage() {
 
             <div className="flex gap-3">
               <button
-                type="button"
+                type="button" // تغییر از type="submit" به type="button"
                 onClick={handleSaveDraft}
                 disabled={
                   loading ||
@@ -451,7 +489,8 @@ export default function CreateArticlePage() {
               </button>
 
               <button
-                type="submit"
+                type="button"
+                onClick={handlePublish}
                 disabled={
                   loading ||
                   !formData.title ||

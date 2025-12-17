@@ -1,4 +1,3 @@
-// app/admin/articles/edit/[id]/page.js
 "use client";
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -10,148 +9,22 @@ import {
   FiTag,
   FiSave,
   FiEye,
+  FiRefreshCw,
 } from "react-icons/fi";
 import CustomCKEditor from "@/app/components/ui/CKEditor/CKEditor";
 
-// داده‌های نمونه مقالات (همانند صفحه پیش‌نمایش)
-const sampleArticles = {
-  1: {
-    id: 1,
-    title: "آموزش کامل React.js برای توسعه فرانت‌اند",
-    summary: "یادگیری اصول و مفاهیم پیشرفته React.js در سال 2024",
-    content: `
-      <div class="prose max-w-none">
-        <h2>مقدمه ای بر React.js</h2>
-        <p>React.js یک کتابخانه قدرتمند جاوااسکریپت برای ساخت رابط‌های کاربری است. این کتابخانه توسط فیسبوک توسعه داده شده و امروزه توسط بسیاری از شرکت‌های بزرگ فناوری استفاده می‌شود.</p>
-        
-        <h3>مزایای استفاده از React</h3>
-        <ul>
-          <li><strong>یادگیری آسان:</strong> مستندات کامل و جامعه بزرگ</li>
-          <li><strong>کامپوننت‌های قابل استفاده مجدد:</strong> صرفه‌جویی در زمان توسعه</li>
-          <li><strong>Virtual DOM:</strong> عملکرد فوق‌العاده</li>
-          <li><strong>اکوسیستم غنی:</strong> ابزارها و کتابخانه‌های متعدد</li>
-        </ul>
-        
-        <h3>نصب و راه‌اندازی</h3>
-        <p>برای شروع کار با React می‌توانید از Create React App استفاده کنید:</p>
-        
-        <pre><code>npx create-react-app my-app
-cd my-app
-npm start</code></pre>
-        
-        <h3>نتیجه‌گیری</h3>
-        <p>React.js انتخابی عالی برای توسعه اپلیکیشن‌های مدرن وب است. با یادگیری این کتابخانه، می‌توانید اپلیکیشن‌های پیچیده و مقیاس‌پذیر ایجاد کنید.</p>
-      </div>
-    `,
-    mainImage:
-      "https://tec.shuner.ir/wp-content/uploads/2025/07/call-of-duty-black-ops-6-black-man-soldier-6655e4e14b10d5a6894b8256.webp",
-    tags: ["React", "جاوااسکریپت", "فرانت‌اند", "برنامه‌نویسی"],
-    author: "علیرضا محمدی",
-    status: "published",
-    readTime: 8,
-    views: 1245,
-    likes: 89,
-    createdAt: "2024-01-15",
-    publishedAt: "2024-01-15",
-    isActive: true,
-    category: "آموزش برنامه‌نویسی",
-  },
-  2: {
-    id: 2,
-    title: "بررسی جدیدترین قابلیت‌های Next.js 14",
-    summary: "آشنایی با امکانات جدید و بهره‌وری نسخه 14 Next.js",
-    content: `
-      <div class="prose max-w-none">
-        <h2>Next.js 14: انقلابی در توسعه وب</h2>
-        <p>Next.js 14 آخرین نسخه از این فریمورک محبوب React است که ویژگی‌های متعددی را به ارمغان آورده است.</p>
-        
-        <h3>مهم‌ترین ویژگی‌های جدید</h3>
-        
-        <h4>1. Turbopack پایدار</h4>
-        <p>Turbopack که قبلاً در حالت beta بود، اکنون به صورت پایدار در دسترس است. این باندلر جدید سرعت کامپایل را تا ۵ برابر افزایش می‌دهد.</p>
-        
-        <h4>2. Server Actions پایدار</h4>
-        <p>اکنون می‌توانید توابع سرور را مستقیماً از کامپوننت‌های React فراخوانی کنید.</p>
-        
-        <h4>3. بهبودهای Image Component</h4>
-        <p>کامپوننت Image اکنون از فرمت‌های جدید پشتیبانی می‌کند و بهینه‌سازی‌های بیشتری دارد.</p>
-        
-        <h3>کد نمونه</h3>
-        <pre><code>// app/page.js
-export default function Home() {
-  return (
-    &lt;div&gt;
-      &lt;h1&gt;به Next.js 14 خوش آمدید&lt;/h1&gt;
-    &lt;/div&gt;
-  )
-}</code></pre>
-      </div>
-    `,
-    mainImage:
-      "https://tec.shuner.ir/wp-content/uploads/2025/07/2020-12-sony-playstation-4-fat-vs-5-638c64e4a77666af5aef0d0e.webp",
-    tags: ["Next.js", "React", "فریمورک", "توسعه وب"],
-    author: "محمد رضایی",
-    status: "published",
-    readTime: 6,
-    views: 892,
-    likes: 45,
-    createdAt: "2024-01-10",
-    publishedAt: "2024-01-10",
-    isActive: true,
-    category: "تکنولوژی",
-  },
-  3: {
-    id: 3,
-    title: "بهینه‌سازی عملکرد در اپلیکیشن‌های React",
-    summary: "تکنیک‌های پیشرفته برای بهبود performance اپلیکیشن‌های React",
-    content: `
-      <div class="prose max-w-none">
-        <h2>بهینه‌سازی عملکرد در React</h2>
-        <p>با رشد اپلیکیشن‌های React، بهینه‌سازی عملکرد تبدیل به یک ضرورت شده است. در این مقاله به بررسی تکنیک‌های مختلف می‌پردازیم.</p>
-        
-        <h3>۱. استفاده از React.memo</h3>
-        <p>React.memo یک Higher-Order Component است که از رندرهای غیرضروری جلوگیری می‌کند.</p>
-        
-        <pre><code>const MyComponent = React.memo(function MyComponent({ prop }) {
-  return &lt;div&gt;{prop}&lt;/div&gt;;
-});</code></pre>
-        
-        <h3>۲. استفاده از useCallback و useMemo</h3>
-        <p>این هوک‌ها از ایجاد مجدد توابع و مقادیر جلوگیری می‌کنند.</p>
-        
-        <pre><code>const memoizedValue = useMemo(() => computeExpensiveValue(a, b), [a, b]);
-const memoizedCallback = useCallback(() => { doSomething(a, b); }, [a, b]);</code></pre>
-        
-        <h3>۳. کداسپلیتینگ با React.lazy</h3>
-        <p>بارگذاری تنبل کامپوننت‌ها می‌تواند زمان بارگذاری اولیه را کاهش دهد.</p>
-        
-        <pre><code>const LazyComponent = React.lazy(() => import('./LazyComponent'));</code></pre>
-        
-        <h3>۴. بهینه‌سازی تصاویر</h3>
-        <p>استفاده از فرمت‌های مدرن مانند WebP و lazy loading تصاویر.</p>
-      </div>
-    `,
-    mainImage:
-      "https://tec.shuner.ir/wp-content/uploads/2025/10/tp-link-tl-wr3602be-689356e34a11743828d587c7-1.webp",
-    tags: ["React", "Performance", "بهینه‌سازی", "جاوااسکریپت"],
-    author: "سارا احمدی",
-    status: "draft",
-    readTime: 10,
-    views: 0,
-    likes: 0,
-    createdAt: "2024-01-08",
-    publishedAt: null,
-    isActive: true,
-    category: "آموزش برنامه‌نویسی",
-  },
-};
-
-const suggestedCategories = [
+// دسته‌بندی‌های ثابت
+const fixedCategories = [
   "آموزش برنامه‌نویسی",
   "تکنولوژی",
   "اخبار",
   "طراحی وب",
   "هوش مصنوعی",
+  "امنیت",
+  "موبایل",
+  "بازی‌سازی",
+  "شبکه",
+  "دیتابیس",
 ];
 
 export default function EditArticlePage({ params }) {
@@ -160,12 +33,12 @@ export default function EditArticlePage({ params }) {
     title: "",
     summary: "",
     content: "",
-    mainImage: "",
+    image: "", // تغییر از mainImage به image
     tags: [],
     category: "",
     status: "draft",
-    readTime: "",
-    author: "مدیر سایت",
+    readingTime: "",
+    author: "",
     seoTitle: "",
     seoDescription: "",
   });
@@ -173,37 +46,56 @@ export default function EditArticlePage({ params }) {
   const [imagePreview, setImagePreview] = useState("");
   const [loading, setLoading] = useState(false);
   const [article, setArticle] = useState(null);
+  const [fetching, setFetching] = useState(true);
   const fileInputRef = useRef(null);
-  const [showCategorySuggestions, setShowCategorySuggestions] = useState(false);
-  const [categoryInput, setCategoryInput] = useState("");
+  const [imageFile, setImageFile] = useState(null);
 
-  // دریافت مقاله بر اساس ID
+  // در useEffect دریافت مقاله، این تغییر را اعمال کنید:
   useEffect(() => {
     const fetchArticle = async () => {
-      const { id } = await params;
-      const foundArticle = sampleArticles[id];
+      try {
+        setFetching(true);
+        const { id } = await params;
 
-      if (!foundArticle) {
+        const response = await fetch(`/api/articles/${id}`);
+
+        if (!response.ok) {
+          throw new Error("خطا در دریافت مقاله");
+        }
+
+        const result = await response.json();
+
+        if (result.success && result.data) {
+          const articleData = result.data;
+          setArticle(articleData);
+
+          // پر کردن فرم با داده‌های مقاله
+          setFormData({
+            title: articleData.title || "",
+            summary: articleData.summary || "",
+            content: articleData.content || "",
+            image: articleData.image || "",
+            tags: articleData.tags || [],
+            category: articleData.category || "",
+            status: articleData.status || "draft",
+            readingTime: articleData.readingTime?.toString() || "5",
+            author: articleData.author || "",
+            seoTitle: articleData.seoTitle || "",
+            seoDescription: articleData.seoDescription || "",
+          });
+
+          setImagePreview(articleData.image || "");
+          // حذف این خط: setCategoryInput(articleData.category || "");
+        } else {
+          throw new Error(result.message || "مقاله یافت نشد");
+        }
+      } catch (error) {
+        console.error("Error fetching article:", error);
+        alert("خطا در دریافت مقاله: " + error.message);
         router.push("/admin/articles");
-        return;
+      } finally {
+        setFetching(false);
       }
-
-      setArticle(foundArticle);
-      setFormData({
-        title: foundArticle.title,
-        summary: foundArticle.summary,
-        content: foundArticle.content,
-        mainImage: foundArticle.mainImage,
-        tags: foundArticle.tags,
-        category: foundArticle.category,
-        status: foundArticle.status,
-        readTime: foundArticle.readTime.toString(),
-        author: foundArticle.author,
-        seoTitle: foundArticle.title,
-        seoDescription: foundArticle.summary,
-      });
-      setImagePreview(foundArticle.mainImage);
-      setCategoryInput(foundArticle.category);
     };
 
     fetchArticle();
@@ -235,10 +127,8 @@ export default function EditArticlePage({ params }) {
     if (file) {
       const previewUrl = URL.createObjectURL(file);
       setImagePreview(previewUrl);
-      setFormData((prev) => ({
-        ...prev,
-        mainImage: file,
-      }));
+      setImageFile(file);
+      // فقط فایل را ذخیره می‌کنیم، چون در ارسال فرم باید جداگانه ارسال شود
     }
   };
 
@@ -248,62 +138,106 @@ export default function EditArticlePage({ params }) {
 
   const removeImage = () => {
     setImagePreview("");
-    setFormData((prev) => ({ ...prev, mainImage: "" }));
+    setImageFile(null);
+    setFormData((prev) => ({ ...prev, image: "" }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
-    // شبیه‌سازی ارسال داده برای ویرایش
-    setTimeout(() => {
-      console.log("Updated article data:", formData);
-      setLoading(false);
+    try {
+      const { id } = await params;
+
+      // ایجاد FormData برای ارسال
+      const formDataToSend = new FormData();
+
+      // اضافه کردن فیلدهای متنی
+      formDataToSend.append("title", formData.title);
+      formDataToSend.append("summary", formData.summary);
+      formDataToSend.append("content", formData.content);
+      formDataToSend.append("category", formData.category);
+      formDataToSend.append("status", formData.status);
+      formDataToSend.append("readingTime", formData.readingTime);
+      formDataToSend.append("author", formData.author);
+      formDataToSend.append("seoTitle", formData.seoTitle);
+      formDataToSend.append("seoDescription", formData.seoDescription);
+
+      // اضافه کردن تگ‌ها
+      formData.tags.forEach((tag, index) => {
+        formDataToSend.append(`tags[${index}]`, tag);
+      });
+
+      // اگر تصویر جدید انتخاب شده
+      if (imageFile) {
+        formDataToSend.append("image", imageFile);
+      } else if (formData.image) {
+        // اگر تصویر قدیمی باقی مانده
+        formDataToSend.append("image", formData.image);
+      }
+
+      // ارسال درخواست PUT به API
+      const response = await fetch(`/api/articles/${id}`, {
+        method: "PUT",
+        body: formDataToSend,
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.message || "خطا در ویرایش مقاله");
+      }
+
       alert("مقاله با موفقیت ویرایش شد!");
       router.push("/admin/articles");
-    }, 2000);
+    } catch (error) {
+      console.error("Error updating article:", error);
+      alert("خطا در ویرایش مقاله: " + error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSaveDraft = () => {
     handleChange("status", "draft");
-    // ذخیره به عنوان پیش‌نویس
     handleSubmit(new Event("submit"));
   };
 
   const handlePublish = () => {
     handleChange("status", "published");
-    // انتشار مقاله
     handleSubmit(new Event("submit"));
   };
 
   const handlePreview = () => {
     if (article) {
-      router.push(`/blog/preview/${article.id}`);
+      // باز کردن در تب جدید
+      window.open(`/blog/${article.slug || article._id}`, "_blank");
     }
   };
 
-  const handleCategoryChange = (value) => {
-    setCategoryInput(value);
-    handleChange("category", value);
-    setShowCategorySuggestions(value.length > 0);
-  };
-
-  const handleCategorySelect = (category) => {
-    setCategoryInput(category);
-    handleChange("category", category);
-    setShowCategorySuggestions(false);
-  };
-
-  const filteredCategories = suggestedCategories.filter((category) =>
-    category.toLowerCase().includes(categoryInput.toLowerCase())
-  );
-
-  if (!article) {
+  // نمایش لودینگ
+  if (fetching) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">در حال بارگذاری مقاله...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!article) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">مقاله یافت نشد</p>
+          <button
+            onClick={() => router.push("/admin/articles")}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            بازگشت به لیست مقالات
+          </button>
         </div>
       </div>
     );
@@ -448,38 +382,29 @@ export default function EditArticlePage({ params }) {
                   >
                     <option value="draft">پیش‌نویس</option>
                     <option value="published">منتشر شده</option>
+                    <option value="archived">آرشیو شده</option>
                   </select>
                 </div>
 
-                <div className="relative">
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     دسته‌بندی *
                   </label>
-                  <input
-                    type="text"
-                    value={categoryInput}
-                    onChange={(e) => handleCategoryChange(e.target.value)}
+                  <select
+                    value={formData.category}
+                    onChange={(e) => handleChange("category", e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                    placeholder="دسته‌بندی مقاله را وارد کنید..."
                     required
-                  />
-                  {showCategorySuggestions && filteredCategories.length > 0 && (
-                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
-                      {filteredCategories.map((category, index) => (
-                        <button
-                          key={index}
-                          type="button"
-                          onClick={() => handleCategorySelect(category)}
-                          className="w-full text-right px-4 py-2 hover:bg-gray-100 transition-colors"
-                        >
-                          {category}
-                        </button>
-                      ))}
-                    </div>
-                  )}
+                  >
+                    <option value="">انتخاب دسته‌بندی</option>
+                    {fixedCategories.map((category, index) => (
+                      <option key={index} value={category}>
+                        {category}
+                      </option>
+                    ))}
+                  </select>
                   <p className="text-xs text-gray-500 mt-1">
-                    می‌توانید دسته‌بندی جدید وارد کنید یا از پیشنهادات انتخاب
-                    کنید
+                    فقط می‌توانید از دسته‌بندی‌های موجود انتخاب کنید
                   </p>
                 </div>
 
@@ -489,10 +414,12 @@ export default function EditArticlePage({ params }) {
                   </label>
                   <input
                     type="number"
-                    value={formData.readTime}
-                    onChange={(e) => handleChange("readTime", e.target.value)}
+                    value={formData.readingTime}
+                    onChange={(e) =>
+                      handleChange("readingTime", e.target.value)
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                    placeholder="8"
+                    placeholder="5"
                     min="1"
                     required
                   />
@@ -559,6 +486,9 @@ export default function EditArticlePage({ params }) {
                   </div>
                 </button>
               )}
+              <p className="text-xs text-gray-500 mt-2">
+                اگر تصویر جدید انتخاب نکنید، تصویر قبلی باقی می‌ماند
+              </p>
             </div>
 
             {/* هشتگ‌ها */}
@@ -615,12 +545,24 @@ export default function EditArticlePage({ params }) {
               <div className="space-y-2 text-sm text-gray-600">
                 <div className="flex justify-between">
                   <span>شناسه:</span>
-                  <span className="font-medium">{article.id}</span>
+                  <span className="font-mono">{article._id}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>تاریخ ایجاد:</span>
                   <span className="font-medium">
                     {new Date(article.createdAt).toLocaleDateString("fa-IR")}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>آخرین ویرایش:</span>
+                  <span className="font-medium">
+                    {new Date(article.updatedAt).toLocaleDateString("fa-IR")}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Slug:</span>
+                  <span className="font-mono text-xs truncate max-w-[150px]">
+                    {article.slug}
                   </span>
                 </div>
               </div>
@@ -656,6 +598,20 @@ export default function EditArticlePage({ params }) {
               </button>
 
               <button
+                type="button"
+                onClick={handlePublish}
+                disabled={
+                  loading ||
+                  !formData.title ||
+                  !formData.content ||
+                  !formData.category
+                }
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+              >
+                انتشار مقاله
+              </button>
+
+              <button
                 type="submit"
                 disabled={
                   loading ||
@@ -667,7 +623,7 @@ export default function EditArticlePage({ params }) {
               >
                 {loading ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <FiRefreshCw className="animate-spin" size={18} />
                     در حال ذخیره...
                   </>
                 ) : (

@@ -39,7 +39,7 @@ export default function ArticlesPage() {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
 
-  // دریافت مقالات از بکند
+  // دریافت مقالات از بکند - تغییر endpoint
   useEffect(() => {
     fetchArticles();
   }, []);
@@ -47,80 +47,68 @@ export default function ArticlesPage() {
   const fetchArticles = async () => {
     try {
       setLoading(true);
-      // درخواست به API بکند
-      const response = await fetch("/api/admin/articles");
+      // تغییر endpoint به /api/articles
+      const response = await fetch("/api/articles");
 
       if (!response.ok) {
         throw new Error("خطا در دریافت مقالات");
       }
 
-      const data = await response.json();
-      setArticles(data);
-      setFilteredArticles(data);
+      const result = await response.json();
+
+      // بررسی ساختار پاسخ
+      if (result.success) {
+        setArticles(result.data);
+        setFilteredArticles(result.data);
+      } else {
+        throw new Error(result.message || "خطا در دریافت مقالات");
+      }
     } catch (error) {
       console.error("Error fetching articles:", error);
-      // در صورت خطا، از داده‌های نمونه استفاده می‌کنیم (فقط برای توسعه)
-      const sampleData = [
+      // در صورت خطا، نمایش پیام
+      alert(error.message || "خطا در دریافت مقالات از سرور");
+      // می‌توانید داده‌های خالی قرار دهید
+      setArticles([]);
+      setFilteredArticles([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteArticle = async () => {
+    if (!selectedArticle) return;
+
+    try {
+      setLoading(true);
+      const response = await fetch(
+        `/api/articles/${selectedArticle._id || selectedArticle.id}`,
         {
-          id: 1,
-          title: "آموزش کامل React.js برای توسعه فرانت‌اند",
-          summary: "یادگیری اصول و مفاهیم پیشرفته React.js در سال 2024",
-          content: "<p>این یک مقاله آموزشی کامل درباره React.js است...</p>",
-          mainImage: "/images/react-article.jpg",
-          tags: ["React", "جاوااسکریپت", "فرانت‌اند"],
-          author: "علیرضا محمدی",
-          status: "published",
-          category: "آموزش برنامه‌نویسی",
-          createdAt: "2024-01-15T10:30:00Z",
-          publishedAt: "2024-01-15T12:00:00Z",
-          updatedAt: "2024-01-15T12:00:00Z",
-        },
-        {
-          id: 2,
-          title: "بررسی جدیدترین قابلیت‌های Next.js 14",
-          summary: "آشنایی با امکانات جدید و بهره‌وری نسخه 14 Next.js",
-          content: "<p>Next.js 14 تغییرات قابل توجهی داشته است...</p>",
-          mainImage: "/images/nextjs-article.jpg",
-          tags: ["Next.js", "React", "فریمورک"],
-          author: "محمد رضایی",
-          status: "published",
-          category: "تکنولوژی",
-          createdAt: "2024-01-10T09:15:00Z",
-          publishedAt: "2024-01-10T11:00:00Z",
-          updatedAt: "2024-01-10T11:00:00Z",
-        },
-        {
-          id: 3,
-          title: "بهینه‌سازی عملکرد در اپلیکیشن‌های React",
-          summary: "تکنیک‌های پیشرفته برای بهبود performance",
-          content:
-            "<p>در این مقاله به بررسی روش‌های بهینه‌سازی می‌پردازیم...</p>",
-          mainImage: "/images/performance-article.jpg",
-          tags: ["React", "Performance", "بهینه‌سازی"],
-          author: "سارا احمدی",
-          status: "draft",
-          category: "آموزش برنامه‌نویسی",
-          createdAt: "2024-01-08T14:20:00Z",
-          publishedAt: null,
-          updatedAt: "2024-01-08T14:20:00Z",
-        },
-        {
-          id: 4,
-          title: "مقاله آرشیو شده نمونه",
-          summary: "این مقاله آرشیو شده است",
-          content: "<p>محتوای مقاله آرشیو شده...</p>",
-          mainImage: "/images/archived.jpg",
-          tags: ["آرشیو", "نمونه"],
-          author: "مدیر سیستم",
-          status: "archived",
-          category: "اخبار",
-          createdAt: "2023-12-01T08:00:00Z",
-          publishedAt: "2023-12-01T10:00:00Z",
-          updatedAt: "2023-12-20T16:30:00Z",
-        },
-      ];
-      setArticles(sampleData);
-      setFilteredArticles(sampleData);
+          method: "DELETE",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("خطا در حذف مقاله");
+      }
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.message || "خطا در حذف مقاله");
+      }
+
+      // به‌روزرسانی لیست مقالات
+      setArticles((prev) => prev.filter((a) => a._id !== selectedArticle._id));
+
+      // بستن مودال و ریست کردن
+      setIsDeleteModalOpen(false);
+      setSelectedArticle(null);
+
+      // نمایش پیام موفقیت
+      alert("مقاله با موفقیت حذف شد");
+    } catch (error) {
+      console.error("Error deleting article:", error);
+      alert(error.message || "خطا در حذف مقاله");
     } finally {
       setLoading(false);
     }
@@ -155,47 +143,12 @@ export default function ArticlesPage() {
     setFilteredArticles(filtered);
   }, [articles, searchTerm, selectedCategory, statusFilter]);
 
-  // عملیات حذف مقاله
-  const handleDeleteArticle = async () => {
-    if (!selectedArticle) return;
-
-    try {
-      setLoading(true);
-      // درخواست حذف به بکند
-      const response = await fetch(
-        `/api/admin/articles/${selectedArticle.id}`,
-        {
-          method: "DELETE",
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("خطا در حذف مقاله");
-      }
-
-      // به‌روزرسانی لیست مقالات
-      setArticles((prev) => prev.filter((a) => a.id !== selectedArticle.id));
-
-      // بستن مودال و ریست کردن
-      setIsDeleteModalOpen(false);
-      setSelectedArticle(null);
-
-      // نمایش پیام موفقیت
-      alert("مقاله با موفقیت حذف شد");
-    } catch (error) {
-      console.error("Error deleting article:", error);
-      alert("خطا در حذف مقاله");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const openCreatePage = () => {
     router.push("/admin/articles/create");
   };
 
   const openEditPage = (article) => {
-    router.push(`/admin/articles/edit/${article.id}`);
+    router.push(`/admin/articles/edit/${article._id || article.id}`);
   };
 
   const openDeleteModal = (article) => {

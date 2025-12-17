@@ -95,12 +95,12 @@ const ArticlesTable = ({
           <tbody className="bg-white divide-y divide-gray-200">
             {articles.map((article) => (
               <tr
-                key={article.id}
+                key={article._id || article.id}
                 className="hover:bg-gray-50 transition-colors"
               >
                 <td className="px-4 py-4">
                   <img
-                    src={article.mainImage || "/images/default-article.jpg"}
+                    src={article.image || "public/images/default-article.jpg"}
                     alt={article.title}
                     className="w-16 h-16 object-cover rounded-lg"
                     onError={(e) => {
@@ -116,7 +116,7 @@ const ArticlesTable = ({
                     </h3>
                     {article.summary && (
                       <p className="text-xs text-gray-500 line-clamp-2">
-                        {article.summary}
+                        {article.summary.substring(0, 50) + "..."}
                       </p>
                     )}
                   </div>
@@ -143,7 +143,9 @@ const ArticlesTable = ({
                   <div className="flex items-center gap-1 justify-end">
                     {article.status === "published" && (
                       <Link
-                        href={`/blog/${article.id}`}
+                        href={`/blog/slug${
+                          article.slug || article._id || article.id
+                        }`}
                         className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                         title="مشاهده"
                         target="_blank"

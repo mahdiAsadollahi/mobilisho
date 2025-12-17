@@ -12,6 +12,7 @@ import {
   FiRefreshCw,
 } from "react-icons/fi";
 import CustomCKEditor from "@/app/components/ui/CKEditor/CKEditor";
+import toast from "react-hot-toast";
 
 // دسته‌بندی‌های ثابت
 const fixedCategories = [
@@ -91,7 +92,7 @@ export default function EditArticlePage({ params }) {
         }
       } catch (error) {
         console.error("Error fetching article:", error);
-        alert("خطا در دریافت مقاله: " + error.message);
+        toast("خطا در دریافت مقاله: " + error.message);
         router.push("/admin/articles");
       } finally {
         setFetching(false);
@@ -188,7 +189,7 @@ export default function EditArticlePage({ params }) {
         throw new Error(result.message || "خطا در ویرایش مقاله");
       }
 
-      alert("مقاله با موفقیت ویرایش شد!");
+      toast("مقاله با موفقیت ویرایش شد!");
       router.push("/admin/articles");
     } catch (error) {
       console.error("Error updating article:", error);

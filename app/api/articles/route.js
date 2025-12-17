@@ -69,6 +69,35 @@ const processTags = (formData) => {
   return tags;
 };
 
+export async function GET(req) {
+  try {
+    await connectToDB();
+
+    const articles = await ArticleModel.find({});
+
+    return NextResponse.json(
+      {
+        success: true,
+        data: articles,
+      },
+      {
+        status: 200,
+      }
+    );
+  } catch (error) {
+    console.error("خطا در دریافت مقالات:", error);
+
+    return NextResponse.json(
+      {
+        success: false,
+        message: "خطا در دریافت مقالات",
+        error: error.message,
+      },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(req) {
   try {
     await connectToDB();

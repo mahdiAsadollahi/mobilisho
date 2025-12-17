@@ -1,5 +1,5 @@
 import connectToDB from "@/configs/db";
-import { deleteUploadedFile, uploadImage } from "@/lib/upload";
+import { deleteUploadedFile, uploadArticleImage } from "@/lib/upload";
 import { NextResponse } from "next/server";
 import ArticleModel from "@/models/Article";
 
@@ -125,7 +125,7 @@ export async function POST(req) {
     }
 
     try {
-      const result = await uploadImage(image, "articles");
+      const result = await uploadArticleImage(image, "articles");
       if (!result.success) {
         return NextResponse.json(
           {

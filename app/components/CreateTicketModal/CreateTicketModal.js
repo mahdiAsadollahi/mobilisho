@@ -4,8 +4,6 @@
 import { useState } from "react";
 import {
   FiX,
-  FiPaperclip,
-  FiUpload,
   FiAlertCircle,
   FiTool,
   FiCreditCard,
@@ -21,7 +19,6 @@ const CreateTicketModal = ({ isOpen, onClose, onSubmit }) => {
     priority: "medium",
     category: "technical",
     description: "",
-    attachments: [],
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -57,37 +54,6 @@ const CreateTicketModal = ({ isOpen, onClose, onSubmit }) => {
     }));
   };
 
-  const handleFileUpload = (e) => {
-    const files = Array.from(e.target.files);
-    const newAttachments = files.map((file) => ({
-      id: Math.random().toString(36).substr(2, 9),
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      file: file,
-    }));
-
-    setFormData((prev) => ({
-      ...prev,
-      attachments: [...prev.attachments, ...newAttachments],
-    }));
-  };
-
-  const removeAttachment = (attachmentId) => {
-    setFormData((prev) => ({
-      ...prev,
-      attachments: prev.attachments.filter((att) => att.id !== attachmentId),
-    }));
-  };
-
-  const formatFileSize = (bytes) => {
-    if (bytes === 0) return "0 Bytes";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -105,7 +71,6 @@ const CreateTicketModal = ({ isOpen, onClose, onSubmit }) => {
         priority: "medium",
         category: "technical",
         description: "",
-        attachments: [],
       });
     } catch (error) {
       console.error("Error creating ticket:", error);
@@ -120,7 +85,6 @@ const CreateTicketModal = ({ isOpen, onClose, onSubmit }) => {
       priority: "medium",
       category: "technical",
       description: "",
-      attachments: [],
     });
     onClose();
   };
@@ -252,74 +216,6 @@ const CreateTicketModal = ({ isOpen, onClose, onSubmit }) => {
               />
             </div>
 
-            {/* آپلود فایل */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                فایل‌های پیوست (اختیاری)
-              </label>
-
-              {/* دکمه آپلود */}
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
-                <input
-                  type="file"
-                  multiple
-                  onChange={handleFileUpload}
-                  className="hidden"
-                  id="file-upload"
-                  accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.txt"
-                />
-                <label
-                  htmlFor="file-upload"
-                  className="cursor-pointer flex flex-col items-center gap-3"
-                >
-                  <FiUpload className="text-gray-400 text-2xl" />
-                  <div>
-                    <p className="text-gray-600 font-medium">
-                      برای آپلود فایل کلیک کنید
-                    </p>
-                    <p className="text-gray-500 text-sm mt-1">
-                      JPG, PNG, PDF, DOC (حداکثر ۱۰ مگابایت)
-                    </p>
-                  </div>
-                  <span className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors">
-                    انتخاب فایل
-                  </span>
-                </label>
-              </div>
-
-              {/* لیست فایل‌های آپلود شده */}
-              {formData.attachments.length > 0 && (
-                <div className="mt-4 space-y-2">
-                  <p className="text-sm text-gray-600">فایل‌های انتخاب شده:</p>
-                  {formData.attachments.map((attachment) => (
-                    <div
-                      key={attachment.id}
-                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200"
-                    >
-                      <div className="flex items-center gap-3">
-                        <FiPaperclip className="text-gray-400" />
-                        <div>
-                          <p className="text-sm font-medium text-gray-700">
-                            {attachment.name}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {formatFileSize(attachment.size)}
-                          </p>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => removeAttachment(attachment.id)}
-                        className="text-red-500 hover:text-red-700 transition-colors p-1"
-                      >
-                        <FiX className="text-lg" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
             {/* راهنمایی */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <div className="flex items-start gap-3">
@@ -330,9 +226,11 @@ const CreateTicketModal = ({ isOpen, onClose, onSubmit }) => {
                   </p>
                   <ul className="space-y-1 list-disc list-inside">
                     <li>مشکل خود را به طور کامل و واضح شرح دهید</li>
-                    <li>در صورت امکان، تصویر یا فایل مربوطه را پیوست کنید</li>
-                    <li>شماره سفارش یا تراکنش مربوطه را ذکر کنید</li>
+                    <li>
+                      در صورت امکان، شماره سفارش یا تراکنش مربوطه را ذکر کنید
+                    </li>
                     <li>برای مشکلات فوری با پشتیبانی تلفنی تماس بگیرید</li>
+                    <li>اطلاعات تماس صحیح خود را بررسی نمایید</li>
                   </ul>
                 </div>
               </div>

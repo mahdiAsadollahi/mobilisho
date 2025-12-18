@@ -17,14 +17,14 @@ const schema = new mongoose.Schema(
       type: String,
       enum: ["technical", "payment", "order", "product", "account", "other"],
       default: "technical",
-      rqeuired: true,
+      required: true,
     },
 
     priority: {
       type: String,
       enum: ["low", "medium", "high"],
       default: "medium",
-      rqeuired: true,
+      required: true,
     },
 
     status: {

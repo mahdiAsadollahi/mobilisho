@@ -58,6 +58,7 @@ const CreateTicketModal = ({ isOpen, onClose, onSubmit }) => {
     e.preventDefault();
 
     if (!formData.subject.trim() || !formData.description.trim()) {
+      toast.error("لطفا موضوع و توضیحات را وارد کنید");
       return;
     }
 
@@ -65,7 +66,6 @@ const CreateTicketModal = ({ isOpen, onClose, onSubmit }) => {
 
     try {
       await onSubmit(formData);
-      // ریست فرم
       setFormData({
         subject: "",
         priority: "medium",
@@ -74,6 +74,7 @@ const CreateTicketModal = ({ isOpen, onClose, onSubmit }) => {
       });
     } catch (error) {
       console.error("Error creating ticket:", error);
+      toast.error("خطا در ایجاد تیکت");
     } finally {
       setIsSubmitting(false);
     }

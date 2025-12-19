@@ -123,54 +123,74 @@ export default function SupportTickets() {
     setTickets(sampleTickets);
   }, []);
 
-  const handleCreateTicket = (ticketData) => {
-    const newTicket = {
-      id: Math.max(...tickets.map((t) => t.id), 0) + 1,
-      ...ticketData,
-      ticketNumber: `TKT-2024-${String(tickets.length + 1).padStart(3, "0")}`,
-      status: "open",
-      messages: [
-        {
-          id: 1,
-          sender: "admin",
-          senderName: "اپراتور پشتیبانی",
-          message: ticketData.message,
-          attachments: ticketData.attachments || [],
+  // در تابع handleCreateTicket در page.js این تغییرات را اعمال کنید:
+  const handleCreateTicket = async (ticketData) => {
+    try {
+      // اگر پاسخ API از سرور آمده باشد
+      if (ticketData.apiResponse) {
+        const apiTicket = ticketData.apiResponse.data.ticket;
+
+        const newTicket = {
+          id: apiTicket.id || Math.max(...tickets.map((t) => t.id), 0) + 1,
+          ...ticketData,
+          ticketNumber: `TKT-${new Date().getFullYear()}-${String(
+            apiTicket.id || tickets.length + 1
+          ).padStart(4, "0")}`,
+          subject: apiTicket.subject,
+          category: apiTicket.category,
+          priority: apiTicket.priority,
+          status: apiTicket.status || "open",
+          customer: ticketData.customer,
+          messages: [
+            {
+              id: 1,
+              sender: "admin",
+              senderName: "اپراتور پشتیبانی",
+              message: ticketData.message,
+              createdAt:
+                new Date().toLocaleDateString("fa-IR") +
+                " " +
+                new Date().toLocaleTimeString("fa-IR", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                }),
+              isRead: true,
+            },
+          ],
           createdAt:
+            new Date(apiTicket.createdAt).toLocaleDateString("fa-IR") +
+            " " +
+            new Date(apiTicket.createdAt).toLocaleTimeString("fa-IR", {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+          updatedAt:
             new Date().toLocaleDateString("fa-IR") +
             " " +
             new Date().toLocaleTimeString("fa-IR", {
               hour: "2-digit",
               minute: "2-digit",
             }),
-          isRead: true,
-        },
-      ],
-      createdAt:
-        new Date().toLocaleDateString("fa-IR") +
-        " " +
-        new Date().toLocaleTimeString("fa-IR", {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-      updatedAt:
-        new Date().toLocaleDateString("fa-IR") +
-        " " +
-        new Date().toLocaleTimeString("fa-IR", {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-      lastReplyAt:
-        new Date().toLocaleDateString("fa-IR") +
-        " " +
-        new Date().toLocaleTimeString("fa-IR", {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-      isArchived: false,
-    };
-    setTickets([newTicket, ...tickets]);
-    setShowTicketModal(false);
+          lastReplyAt:
+            new Date().toLocaleDateString("fa-IR") +
+            " " +
+            new Date().toLocaleTimeString("fa-IR", {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+          isArchived: false,
+        };
+
+        setTickets([newTicket, ...tickets]);
+        setShowTicketModal(false);
+
+        // نمایش پیام موفقیت
+        alert("تیکت با موفقیت ایجاد شد!");
+      }
+    } catch (error) {
+      console.error("Error creating ticket:", error);
+      alert("خطا در ایجاد تیکت. لطفاً دوباره تلاش کنید.");
+    }
   };
 
   const handleSendMessage = (ticketId, messageData) => {

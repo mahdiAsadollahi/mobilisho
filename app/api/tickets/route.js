@@ -43,7 +43,9 @@ export async function POST(req) {
         { status: 404 }
       );
     }
+    // در route.js مربوط به tickets، پارامتر userId را دریافت کنید و بررسی‌های لازم را انجام دهید:
 
+    // دریافت داده‌های بدنه درخواست
     let body;
     try {
       body = await req.json();
@@ -57,8 +59,9 @@ export async function POST(req) {
       );
     }
 
-    const { subject, category, priority, content } = body;
+    const { subject, category, priority, content, userId } = body;
 
+    // اعتبارسنجی فیلدهای الزامی
     if (!subject?.trim()) {
       return Response.json(
         {
@@ -99,6 +102,7 @@ export async function POST(req) {
       );
     }
 
+    // اعتبارسنجی طول فیلدها
     if (subject.trim().length < 3) {
       return Response.json(
         {
@@ -119,6 +123,7 @@ export async function POST(req) {
       );
     }
 
+    // اعتبارسنجی اولویت
     const validPriorities = ["low", "medium", "high", "urgent"];
     if (!validPriorities.includes(priority.toLowerCase())) {
       return Response.json(
@@ -131,6 +136,83 @@ export async function POST(req) {
       );
     }
 
+    // بررسی کاربر: اولویت با userId ارسال شده، در غیر این صورت از کاربر لاگین‌شده استفاده می‌شود
+    let user;
+
+    if (userId) {
+      // اعتبارسنجی userId
+      if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return Response.json(
+          {
+            success: false,
+            message: "شناسه کاربر نامعتبر است",
+          },
+          { status: 400 }
+        );
+      }
+
+      // پیدا کردن کاربر بر اساس userId ارسال شده
+      user = await UserModel.findById(userId);
+      if (!user) {
+        return Response.json(
+          {
+            success: false,
+            message: "کاربر مورد نظر یافت نشد",
+          },
+          { status: 404 }
+        );
+      }
+
+      // بررسی اینکه کاربر بلاک نباشد
+      if (user.isBan) {
+        return Response.json(
+          {
+            success: false,
+            message: "این کاربر مسدود شده است",
+          },
+          { status: 403 }
+        );
+      }
+    } else {
+      // اگر userId ارسال نشده، از کاربر لاگین‌شده استفاده کن
+      const cookieStore = await cookies();
+      const token = cookieStore.get("token");
+
+      if (!token || !token.value) {
+        return Response.json(
+          {
+            success: false,
+            message: "لطفا وارد حساب کاربری خود شوید",
+          },
+          { status: 401 }
+        );
+      }
+
+      const tokenPayload = verifyAccessToken(token.value);
+      if (!tokenPayload) {
+        return Response.json(
+          {
+            success: false,
+            message: "توکن نامعتبر یا منقضی شده است",
+          },
+          { status: 401 }
+        );
+      }
+
+      // پیدا کردن کاربر لاگین‌شده
+      user = await UserModel.findOne({ phone: tokenPayload.phone });
+      if (!user) {
+        return Response.json(
+          {
+            success: false,
+            message: "کاربر لاگین‌شده یافت نشد",
+          },
+          { status: 404 }
+        );
+      }
+    }
+
+    // ایجاد داده تیکت
     const ticketData = {
       user: user._id,
       subject: subject.trim(),
@@ -138,10 +220,13 @@ export async function POST(req) {
       priority: priority.toLowerCase(),
       status: "open",
       lastActivityAt: new Date(),
+      createdByAdmin: !!userId, // اگر userId ارسال شده، یعنی ادمین ایجاد کرده
     };
 
+    // ایجاد تیکت در دیتابیس
     const createdTicket = await TicketModel.create(ticketData);
 
+    // ایجاد اولین پیام تیکت
     const messageData = {
       ticket: createdTicket._id,
       sender: user._id,
@@ -152,9 +237,11 @@ export async function POST(req) {
 
     const firstMessage = await TicketMessageModel.create(messageData);
 
+    // به‌روزرسانی تیکت با پیام اول
     createdTicket.firstMessage = firstMessage._id;
     await createdTicket.save();
 
+    // بازگشت پاسخ موفقیت‌آمیز
     return Response.json(
       {
         success: true,
@@ -167,10 +254,12 @@ export async function POST(req) {
             priority: createdTicket.priority,
             status: createdTicket.status,
             createdAt: createdTicket.createdAt,
+            createdByAdmin: createdTicket.createdByAdmin,
             user: {
               id: user._id,
               username: user.username,
               phone: user.phone,
+              role: user.role,
             },
           },
           firstMessage: {

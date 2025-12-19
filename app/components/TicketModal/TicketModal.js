@@ -1,6 +1,7 @@
 // app/components/TicketModal/TicketModal.js
-import { useState } from "react";
-import { FiX, FiPaperclip, FiUser, FiSearch } from "react-icons/fi";
+import { useState, useEffect, useCallback } from "react";
+import { FiX, FiUser, FiSearch, FiLoader } from "react-icons/fi";
+import debounce from "lodash/debounce";
 
 export default function TicketModal({ isOpen, onClose, onSubmit }) {
   const [formData, setFormData] = useState({
@@ -9,76 +10,150 @@ export default function TicketModal({ isOpen, onClose, onSubmit }) {
     priority: "medium",
     message: "",
     customer: null,
-    attachments: [],
   });
 
   const [searchTerm, setSearchTerm] = useState("");
   const [showCustomerSearch, setShowCustomerSearch] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+  const [error, setError] = useState("");
+  const [users, setUsers] = useState([]);
 
-  // نمونه کاربران برای جستجو
-  const sampleCustomers = [
-    {
-      id: 1,
-      name: "محمد احمدی",
-      email: "m.ahmadi@example.com",
-      phone: "09123456789",
-    },
-    {
-      id: 2,
-      name: "فاطمه زارعی",
-      email: "f.zarei@example.com",
-      phone: "09129876543",
-    },
-    {
-      id: 3,
-      name: "علی محمدی",
-      email: "a.mohammadi@example.com",
-      phone: "09121234567",
-    },
-  ];
+  // تابع برای دریافت کاربران از API
+  const fetchUsers = useCallback(
+    debounce(async (search) => {
+      if (!search.trim() && !showCustomerSearch) return;
 
-  const filteredCustomers = sampleCustomers.filter(
-    (customer) =>
-      customer.name.includes(searchTerm) ||
-      customer.email.includes(searchTerm) ||
-      customer.phone.includes(searchTerm)
+      setIsLoadingUsers(true);
+      try {
+        const params = new URLSearchParams();
+        if (search.trim()) {
+          params.append("search", search);
+        }
+        params.append("limit", "10");
+
+        const response = await fetch(`/api/users?${params.toString()}`);
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+          setUsers(result.data);
+        } else {
+          setUsers([]);
+        }
+      } catch (err) {
+        console.error("Error fetching users:", err);
+        setUsers([]);
+      } finally {
+        setIsLoadingUsers(false);
+      }
+    }, 500),
+    [showCustomerSearch]
   );
 
-  const handleSubmit = (e) => {
+  // هنگام تغییر عبارت جستجو، کاربران را دریافت کن
+  useEffect(() => {
+    if (showCustomerSearch && searchTerm !== "") {
+      fetchUsers(searchTerm);
+    } else if (showCustomerSearch) {
+      // اگر جستجو خالی است، همه کاربران را بگیر
+      fetchUsers("");
+    }
+  }, [searchTerm, showCustomerSearch, fetchUsers]);
+
+  // وقتی مودال باز می‌شود، کاربران را بگیر
+  useEffect(() => {
+    if (isOpen && showCustomerSearch) {
+      fetchUsers("");
+    }
+  }, [isOpen, showCustomerSearch, fetchUsers]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+
+    // اعتبارسنجی‌ها
     if (!formData.customer) {
-      alert("لطفاً یک مشتری انتخاب کنید");
+      setError("لطفاً یک مشتری انتخاب کنید");
       return;
     }
 
-    onSubmit({
-      ...formData,
-      customer: formData.customer,
-    });
+    if (!formData.subject.trim()) {
+      setError("موضوع تیکت الزامی است");
+      return;
+    }
 
-    // ریست فرم
-    setFormData({
-      subject: "",
-      category: "general",
-      priority: "medium",
-      message: "",
-      customer: null,
-      attachments: [],
-    });
-    setSearchTerm("");
-    setShowCustomerSearch(false);
+    if (!formData.message.trim()) {
+      setError("متن پیام الزامی است");
+      return;
+    }
+
+    if (formData.subject.trim().length < 3) {
+      setError("موضوع تیکت باید حداقل ۳ کاراکتر باشد");
+      return;
+    }
+
+    if (formData.message.trim().length < 10) {
+      setError("متن تیکت باید حداقل ۱۰ کاراکتر باشد");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // ارسال به API سرور
+      const response = await fetch("/api/tickets", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          subject: formData.subject.trim(),
+          category: formData.category,
+          priority: formData.priority,
+          content: formData.message.trim(),
+          userId: formData.customer._id, // ارسال ID کاربر
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || "خطا در ایجاد تیکت");
+      }
+
+      // اگر موفقیت‌آمیز بود
+      onSubmit({
+        ...formData,
+        ticketNumber: `TKT-${new Date().getFullYear()}-${String(
+          result.data?.ticket?.id || Date.now()
+        ).padStart(4, "0")}`,
+        apiResponse: result,
+      });
+
+      // ریست فرم
+      setFormData({
+        subject: "",
+        category: "general",
+        priority: "medium",
+        message: "",
+        customer: null,
+      });
+      setSearchTerm("");
+      setShowCustomerSearch(false);
+      setUsers([]);
+    } catch (err) {
+      setError(err.message || "خطا در ارسال داده به سرور");
+      console.error("Error submitting ticket:", err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleFileSelect = (e) => {
-    const files = Array.from(e.target.files);
-    setFormData((prev) => ({ ...prev, attachments: files }));
-  };
-
-  const removeAttachment = (index) => {
-    setFormData((prev) => ({
-      ...prev,
-      attachments: prev.attachments.filter((_, i) => i !== index),
-    }));
+  // تابع برای فرمت کردن شماره تلفن
+  const formatPhoneNumber = (phone) => {
+    if (!phone) return "";
+    // فرمت: ۰۹۱۲ *** ۱۲۳۴
+    return `${phone.substring(0, 4)} *** ${phone.substring(7)}`;
   };
 
   if (!isOpen) return null;
@@ -91,7 +166,8 @@ export default function TicketModal({ isOpen, onClose, onSubmit }) {
           <h2 className="text-xl font-bold text-gray-900">ایجاد تیکت جدید</h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
+            disabled={isSubmitting}
+            className="p-2 hover:bg-gray-100 rounded-xl transition-colors disabled:opacity-50"
           >
             <FiX size={24} />
           </button>
@@ -101,6 +177,13 @@ export default function TicketModal({ isOpen, onClose, onSubmit }) {
           onSubmit={handleSubmit}
           className="p-6 space-y-6 overflow-y-auto max-h-[calc(90vh-120px)]"
         >
+          {/* نمایش خطا */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">
+              {error}
+            </div>
+          )}
+
           {/* انتخاب مشتری */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-3">
@@ -118,35 +201,55 @@ export default function TicketModal({ isOpen, onClose, onSubmit }) {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     onFocus={() => setShowCustomerSearch(true)}
-                    placeholder="جستجوی مشتری با نام، ایمیل یا تلفن..."
+                    placeholder="جستجوی مشتری با نام یا شماره تلفن..."
                     className="w-full p-4 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    disabled={isSubmitting}
                   />
                 </div>
 
                 {showCustomerSearch && (
                   <div className="border border-gray-200 rounded-xl bg-white shadow-lg max-h-60 overflow-y-auto">
-                    {filteredCustomers.map((customer) => (
-                      <button
-                        key={customer.id}
-                        type="button"
-                        onClick={() => {
-                          setFormData((prev) => ({ ...prev, customer }));
-                          setShowCustomerSearch(false);
-                          setSearchTerm("");
-                        }}
-                        className="w-full p-4 text-right hover:bg-gray-50 border-b border-gray-100 last:border-b-0 transition-colors"
-                      >
-                        <div className="font-medium text-gray-900">
-                          {customer.name}
-                        </div>
-                        <div className="text-sm text-gray-600 mt-1">
-                          {customer.email}
-                        </div>
-                        <div className="text-sm text-gray-600">
-                          {customer.phone}
-                        </div>
-                      </button>
-                    ))}
+                    {isLoadingUsers ? (
+                      <div className="p-4 text-center">
+                        <FiLoader className="animate-spin mx-auto" size={24} />
+                        <p className="text-sm text-gray-500 mt-2">
+                          در حال دریافت کاربران...
+                        </p>
+                      </div>
+                    ) : users.length > 0 ? (
+                      users.map((user) => (
+                        <button
+                          key={user._id}
+                          type="button"
+                          onClick={() => {
+                            setFormData((prev) => ({
+                              ...prev,
+                              customer: user,
+                            }));
+                            setShowCustomerSearch(false);
+                            setSearchTerm("");
+                          }}
+                          disabled={isSubmitting}
+                          className="w-full p-4 text-right hover:bg-gray-50 border-b border-gray-100 last:border-b-0 transition-colors disabled:opacity-50"
+                        >
+                          <div className="font-medium text-gray-900">
+                            {user.username}
+                          </div>
+                          <div className="text-sm text-gray-600 mt-1">
+                            شماره: {formatPhoneNumber(user.phone)}
+                          </div>
+                          <div className="text-xs text-gray-500 mt-1">
+                            {user.role === "ADMIN" ? "ادمین" : "کاربر"}
+                          </div>
+                        </button>
+                      ))
+                    ) : (
+                      <div className="p-4 text-center text-gray-500">
+                        {searchTerm.trim()
+                          ? "کاربری با این مشخصات یافت نشد"
+                          : "هیچ کاربری یافت نشد"}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -154,10 +257,13 @@ export default function TicketModal({ isOpen, onClose, onSubmit }) {
               <div className="flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-xl">
                 <div>
                   <div className="font-medium text-blue-900">
-                    {formData.customer.name}
+                    {formData.customer.username}
                   </div>
                   <div className="text-sm text-blue-700 mt-1">
-                    {formData.customer.email}
+                    شماره: {formatPhoneNumber(formData.customer.phone)}
+                  </div>
+                  <div className="text-xs text-blue-600 mt-1">
+                    {formData.customer.role === "ADMIN" ? "ادمین" : "کاربر"}
                   </div>
                 </div>
                 <button
@@ -165,7 +271,8 @@ export default function TicketModal({ isOpen, onClose, onSubmit }) {
                   onClick={() =>
                     setFormData((prev) => ({ ...prev, customer: null }))
                   }
-                  className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
+                  disabled={isSubmitting}
+                  className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors disabled:opacity-50"
                 >
                   <FiX size={18} />
                 </button>
@@ -187,6 +294,7 @@ export default function TicketModal({ isOpen, onClose, onSubmit }) {
               }
               className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="موضوع تیکت را وارد کنید..."
+              disabled={isSubmitting}
             />
           </div>
 
@@ -202,6 +310,7 @@ export default function TicketModal({ isOpen, onClose, onSubmit }) {
                   setFormData((prev) => ({ ...prev, category: e.target.value }))
                 }
                 className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled={isSubmitting}
               >
                 <option value="technical">فنی</option>
                 <option value="financial">مالی</option>
@@ -220,6 +329,7 @@ export default function TicketModal({ isOpen, onClose, onSubmit }) {
                   setFormData((prev) => ({ ...prev, priority: e.target.value }))
                 }
                 className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled={isSubmitting}
               >
                 <option value="low">کم</option>
                 <option value="medium">متوسط</option>
@@ -243,77 +353,31 @@ export default function TicketModal({ isOpen, onClose, onSubmit }) {
               }
               className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
               placeholder="متن پیام خود را وارد کنید..."
+              disabled={isSubmitting}
             />
           </div>
-
-          {/* فایل‌های پیوست */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">
-              فایل‌های پیوست
-            </label>
-            <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-gray-400 transition-colors">
-              <FiPaperclip className="mx-auto text-gray-400 mb-3" size={28} />
-              <p className="text-sm text-gray-600 mb-3">
-                فایل‌ها را اینجا رها کنید یا برای آپلود کلیک کنید
-              </p>
-              <input
-                type="file"
-                multiple
-                className="hidden"
-                id="file-upload"
-                onChange={handleFileSelect}
-              />
-              <label
-                htmlFor="file-upload"
-                className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 cursor-pointer inline-block font-medium"
-              >
-                انتخاب فایل
-              </label>
-            </div>
-          </div>
-
-          {/* لیست فایل‌های انتخاب شده */}
-          {formData.attachments.length > 0 && (
-            <div className="space-y-3">
-              <p className="text-sm font-medium text-gray-700">
-                فایل‌های انتخاب شده:
-              </p>
-              {formData.attachments.map((file, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between bg-gray-50 p-4 rounded-xl border border-gray-200"
-                >
-                  <div className="flex items-center gap-3">
-                    <FiPaperclip className="text-gray-400" size={18} />
-                    <span className="text-sm text-gray-600">{file.name}</span>
-                    <span className="text-xs text-gray-500">
-                      ({(file.size / 1024).toFixed(1)} KB)
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => removeAttachment(index)}
-                    className="text-red-600 hover:text-red-800 transition-colors"
-                  >
-                    <FiX size={18} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
 
           {/* دکمه‌های اقدام */}
           <div className="flex items-center gap-4 pt-4">
             <button
               type="submit"
-              className="flex-1 px-6 py-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 font-medium shadow-lg hover:shadow-xl"
+              disabled={isSubmitting}
+              className="flex-1 px-6 py-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 font-medium shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              ایجاد تیکت
+              {isSubmitting ? (
+                <>
+                  <FiLoader className="animate-spin" size={20} />
+                  <span>در حال ایجاد...</span>
+                </>
+              ) : (
+                "ایجاد تیکت"
+              )}
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-6 py-4 bg-gray-300 text-gray-700 rounded-xl hover:bg-gray-400 transition-all duration-200 font-medium"
+              disabled={isSubmitting}
+              className="flex-1 px-6 py-4 bg-gray-300 text-gray-700 rounded-xl hover:bg-gray-400 transition-all duration-200 font-medium disabled:opacity-50"
             >
               انصراف
             </button>

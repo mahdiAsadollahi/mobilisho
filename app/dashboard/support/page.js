@@ -5,6 +5,7 @@ import SupportTicketList from "@/app/components/SupportTicketList/SupportTicketL
 import TicketDetails from "@/app/components/TicketDetails/TicketDetails";
 import CreateTicketModal from "@/app/components/CreateTicketModal/CreateTicketModal";
 import { FiPhone, FiPlus } from "react-icons/fi";
+import toast from "react-hot-toast";
 
 // داده‌های نمونه
 const sampleTickets = [
@@ -105,44 +106,37 @@ export default function SupportPage() {
     setSelectedTicket(null);
   };
 
-  const handleCreateTicket = (newTicketData) => {
-    const newTicket = {
-      id: `TKT-${String(tickets.length + 1).padStart(3, "0")}`,
-      ...newTicketData,
-      status: "open",
-      createdAt:
-        new Date().toLocaleDateString("fa-IR") +
-        " - " +
-        new Date().toLocaleTimeString("fa-IR", {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-      lastUpdate:
-        new Date().toLocaleDateString("fa-IR") +
-        " - " +
-        new Date().toLocaleTimeString("fa-IR", {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-      messages: [
-        {
-          id: 1,
-          sender: "user",
-          message: newTicketData.description,
-          timestamp:
-            new Date().toLocaleDateString("fa-IR") +
-            " - " +
-            new Date().toLocaleTimeString("fa-IR", {
-              hour: "2-digit",
-              minute: "2-digit",
-            }),
-          attachments: newTicketData.attachments || [],
+  const handleCreateTicket = async (newTicketData) => {
+    try {
+      const response = await fetch("/api/tickets", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      ],
-    };
+        credentials: "include",
+        body: JSON.stringify({
+          subject: newTicketData.subject,
+          category: newTicketData.category,
+          priority: newTicketData.priority,
+          content: newTicketData.description,
+        }),
+      });
 
-    setTickets((prev) => [newTicket, ...prev]);
-    setCreateModalOpen(false);
+      const data = await response.json();
+
+      if (data.success) {
+        toast.success("تیکت با موفقیت ایجاد شد");
+        setCreateModalOpen(false);
+
+        // رفرش لیست تیکت‌ها
+        fetchTickets(filter, 1);
+      } else {
+        throw new Error(data.message);
+      }
+    } catch (error) {
+      console.error("Error creating ticket:", error);
+      toast.error("خطا در ایجاد تیکت");
+    }
   };
 
   const handleSendMessage = (ticketId, message) => {

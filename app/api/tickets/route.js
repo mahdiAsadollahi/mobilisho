@@ -306,24 +306,135 @@ export async function GET(req) {
   try {
     await connectToDB();
 
-    const tickets = await TicketModel.find({})
-      .populate("user", "username phone")
-      .sort({ createdAt: -1 })
-      .limit(10);
+    const { searchParams } = new URL(req.url);
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "20");
+    const status = searchParams.get("status");
+    const priority = searchParams.get("priority");
+    const category = searchParams.get("category");
+    const search = searchParams.get("search");
+    const archived = searchParams.get("archived");
+    const userId = searchParams.get("userId");
+    const skip = (page - 1) * limit;
+
+    // ساخت کوئری
+    let query = {};
+
+    // فیلتر وضعیت
+    if (status && status !== "all") {
+      if (status === "archived") {
+        query.isArchived = true;
+      } else if (status === "all_active") {
+        query.isArchived = false;
+      } else {
+        query.status = status;
+        query.isArchived = false;
+      }
+    } else {
+      query.isArchived = false;
+    }
+
+    // فیلترهای دیگر
+    if (priority) query.priority = priority;
+    if (category) query.category = category;
+    if (userId) query.user = userId;
+    if (archived === "true") query.isArchived = true;
+
+    // فیلتر جستجو
+    if (search) {
+      query.$or = [
+        { subject: { $regex: search, $options: "i" } },
+        { "user.username": { $regex: search, $options: "i" } },
+        { "user.phone": { $regex: search, $options: "i" } },
+      ];
+    }
+
+    // گرفتن تیکت‌ها با اطلاعات کاربر
+    const tickets = await TicketModel.find(query)
+      .populate("user", "username phone email role")
+      .populate("assignedTo", "username")
+      .sort({ lastActivityAt: -1, createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    // شمارش کل تیکت‌ها
+    const total = await TicketModel.countDocuments(query);
+    const totalPages = Math.ceil(total / limit);
+
+    // آمار
+    const stats = {
+      total: await TicketModel.countDocuments({ isArchived: false }),
+      open: await TicketModel.countDocuments({
+        status: "open",
+        isArchived: false,
+      }),
+      answered: await TicketModel.countDocuments({
+        status: "answered",
+        isArchived: false,
+      }),
+      customer_reply: await TicketModel.countDocuments({
+        status: "customer_reply",
+        isArchived: false,
+      }),
+      closed: await TicketModel.countDocuments({
+        status: "closed",
+        isArchived: false,
+      }),
+      archived: await TicketModel.countDocuments({ isArchived: true }),
+      highPriority: await TicketModel.countDocuments({
+        priority: "high",
+        isArchived: false,
+      }),
+    };
 
     return Response.json({
-      message: "تیکت‌ها دریافت شدند",
-      data: tickets,
+      success: true,
+      data: {
+        tickets: tickets.map((ticket) => ({
+          id: ticket._id,
+          ticketNumber: `TKT-${ticket.createdAt.getFullYear()}-${String(
+            ticket._id
+          ).slice(-4)}`,
+          subject: ticket.subject,
+          category: ticket.category,
+          priority: ticket.priority,
+          status: ticket.status,
+          isArchived: ticket.isArchived,
+          createdAt: ticket.createdAt,
+          updatedAt: ticket.updatedAt,
+          lastActivityAt: ticket.lastActivityAt,
+          createdByAdmin: ticket.createdByAdmin,
+          customer: {
+            id: ticket.user?._id,
+            name: ticket.user?.username,
+            phone: ticket.user?.phone,
+            email: ticket.user?.email,
+          },
+          assignedTo: ticket.assignedTo
+            ? {
+                id: ticket.assignedTo._id,
+                name: ticket.assignedTo.username,
+              }
+            : null,
+        })),
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages,
+        },
+        stats,
+      },
     });
   } catch (err) {
+    console.error("Error fetching tickets:", err);
     return Response.json(
       {
+        success: false,
         message: "خطا در دریافت تیکت‌ها",
         error: err.message,
       },
-      {
-        status: 500,
-      }
+      { status: 500 }
     );
   }
 }

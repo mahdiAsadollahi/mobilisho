@@ -32,96 +32,43 @@ export default function SupportTickets() {
     status: "",
   });
 
-  // داده‌های نمونه بهبود یافته
+  // app/admin/support/page.js - بخش useEffect برای لود تیکت‌ها
   useEffect(() => {
-    const sampleTickets = [
-      {
-        id: 1,
-        ticketNumber: "TKT-2024-001",
-        subject: "مشکل در پرداخت آنلاین",
-        category: "financial",
-        priority: "high",
-        status: "open",
-        customer: {
-          id: 1,
-          name: "محمد احمدی",
-          email: "m.ahmadi@example.com",
-          phone: "09123456789",
-        },
-        assignedTo: {
-          id: 1,
-          name: "پشتیبانی فروش",
-        },
-        messages: [
-          {
-            id: 1,
-            sender: "customer",
-            senderName: "محمد احمدی",
-            message: "هنگام پرداخت آنلاین خطای 500 دریافت می‌کنم",
-            attachments: [],
-            createdAt: "1402/12/15 14:30",
-            isRead: true,
-          },
-          {
-            id: 2,
-            sender: "admin",
-            senderName: "پشتیبانی فروش",
-            message: "لطفاً تصویر خطا را ارسال کنید تا بررسی کنیم",
-            attachments: [],
-            createdAt: "1402/12/15 15:45",
-            isRead: true,
-          },
-        ],
-        createdAt: "1402/12/15 14:30",
-        updatedAt: "1402/12/15 15:45",
-        lastReplyAt: "1402/12/15 15:45",
-        isArchived: false,
-      },
-      {
-        id: 2,
-        ticketNumber: "TKT-2024-002",
-        subject: "سوال درباره محصول جدید",
-        category: "sales",
-        priority: "medium",
-        status: "answered",
-        customer: {
-          id: 2,
-          name: "فاطمه زارعی",
-          email: "f.zarei@example.com",
-          phone: "09129876543",
-        },
-        assignedTo: {
-          id: 2,
-          name: "پشتیبانی فروش",
-        },
-        messages: [
-          {
-            id: 1,
-            sender: "customer",
-            senderName: "فاطمه زارعی",
-            message: "آیا محصول جدید شما قابلیت ... را دارد؟",
-            attachments: [],
-            createdAt: "1402/12/16 10:20",
-            isRead: true,
-          },
-          {
-            id: 2,
-            sender: "admin",
-            senderName: "پشتیبانی فروش",
-            message: "بله، محصول جدید تمام قابلیت‌های مورد نظر شما را دارد",
-            attachments: [],
-            createdAt: "1402/12/16 11:30",
-            isRead: true,
-          },
-        ],
-        createdAt: "1402/12/16 10:20",
-        updatedAt: "1402/12/16 11:30",
-        lastReplyAt: "1402/12/16 11:30",
-        isArchived: false,
-      },
-    ];
-    setTickets(sampleTickets);
-  }, []);
+    const fetchTickets = async () => {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams();
+        if (activeTab !== "all") {
+          if (activeTab === "archived") {
+            params.append("archived", "true");
+          } else {
+            params.append("status", activeTab);
+          }
+        }
+
+        if (filters.search) params.append("search", filters.search);
+        if (filters.category) params.append("category", filters.category);
+        if (filters.priority) params.append("priority", filters.priority);
+        if (filters.status) params.append("status", filters.status);
+
+        const response = await fetch(`/api/tickets?${params.toString()}`);
+        const result = await response.json();
+
+        if (result.success) {
+          setTickets(result.data.tickets);
+          // می‌توانید stats را هم ذخیره کنید اگر نیاز دارید
+        } else {
+          console.error("Error fetching tickets:", result.message);
+        }
+      } catch (error) {
+        console.error("Error fetching tickets:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTickets();
+  }, [activeTab, filters]); // وابستگی به فیلترها
 
   // در تابع handleCreateTicket در page.js این تغییرات را اعمال کنید:
   const handleCreateTicket = async (ticketData) => {
@@ -211,75 +158,101 @@ export default function SupportTickets() {
     }
   };
 
-  const handleSendMessage = (ticketId, messageData) => {
-    setTickets(
-      tickets.map((ticket) =>
-        ticket.id === ticketId
-          ? {
-              ...ticket,
-              messages: [
-                ...ticket.messages,
-                {
-                  id: Math.max(...ticket.messages.map((m) => m.id), 0) + 1,
-                  ...messageData,
-                  createdAt:
-                    new Date().toLocaleDateString("fa-IR") +
-                    " " +
-                    new Date().toLocaleTimeString("fa-IR", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    }),
-                  isRead: true,
-                },
-              ],
-              status:
-                messageData.sender === "admin" ? "answered" : "customer_reply",
-              updatedAt:
-                new Date().toLocaleDateString("fa-IR") +
-                " " +
-                new Date().toLocaleTimeString("fa-IR", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                }),
-              lastReplyAt:
-                new Date().toLocaleDateString("fa-IR") +
-                " " +
-                new Date().toLocaleTimeString("fa-IR", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                }),
-            }
-          : ticket
-      )
-    );
+  const handleSendMessage = async (ticketId, messageData) => {
+    try {
+      const response = await fetch(`/api/tickets/${ticketId}/messages`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          content: messageData.message,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        // ریفرش تیکت‌ها
+        await fetchTickets();
+
+        // اگر تیکت انتخاب شده است، آن را آپدیت کن
+        if (selectedTicket && selectedTicket.id === ticketId) {
+          const ticketResponse = await fetch(`/api/tickets/${ticketId}`);
+          const ticketResult = await ticketResponse.json();
+
+          if (ticketResult.success) {
+            setSelectedTicket(ticketResult.data.ticket);
+          }
+        }
+      } else {
+        alert(result.message || "خطا در ارسال پیام");
+      }
+    } catch (error) {
+      console.error("Error sending message:", error);
+      alert("خطا در ارسال پیام");
+    }
   };
 
-  const handleUpdateTicketStatus = (ticketId, status) => {
-    setTickets(
-      tickets.map((ticket) =>
-        ticket.id === ticketId
-          ? {
-              ...ticket,
-              status,
-              updatedAt:
-                new Date().toLocaleDateString("fa-IR") +
-                " " +
-                new Date().toLocaleTimeString("fa-IR", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                }),
-            }
-          : ticket
-      )
-    );
+  const handleUpdateTicketStatus = async (ticketId, status) => {
+    try {
+      const response = await fetch(`/api/tickets/${ticketId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ status }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        // آپدیت لیست تیکت‌ها
+        setTickets((prev) =>
+          prev.map((ticket) =>
+            ticket.id === ticketId
+              ? {
+                  ...ticket,
+                  status,
+                  updatedAt: new Date().toLocaleString("fa-IR"),
+                }
+              : ticket
+          )
+        );
+      } else {
+        alert(result.message || "خطا در به‌روزرسانی وضعیت");
+      }
+    } catch (error) {
+      console.error("Error updating ticket status:", error);
+      alert("خطا در به‌روزرسانی وضعیت");
+    }
   };
 
-  const handleArchiveTicket = (ticketId) => {
-    setTickets(
-      tickets.map((ticket) =>
-        ticket.id === ticketId ? { ...ticket, isArchived: true } : ticket
-      )
-    );
+  const handleArchiveTicket = async (ticketId) => {
+    try {
+      const response = await fetch(`/api/tickets/${ticketId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ isArchived: true }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        // حذف تیکت از لیست
+        setTickets((prev) => prev.filter((ticket) => ticket.id !== ticketId));
+      } else {
+        alert(result.message || "خطا در بایگانی تیکت");
+      }
+    } catch (error) {
+      console.error("Error archiving ticket:", error);
+      alert("خطا در بایگانی تیکت");
+    }
   };
 
   const filteredTickets = tickets.filter((ticket) => {

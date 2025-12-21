@@ -4,47 +4,11 @@ import TicketMessageModel from "@/models/TicketMessage";
 import { verifyAccessToken } from "@/utils/auth";
 import { cookies } from "next/headers";
 import UserModel from "@/models/User";
+import mongoose from "mongoose";
 
 export async function POST(req) {
   try {
     await connectToDB();
-
-    const cookieStore = await cookies();
-    const token = cookieStore.get("token");
-
-    if (!token || !token.value) {
-      return Response.json(
-        {
-          success: false,
-          message: "لطفا وارد حساب کاربری خود شوید",
-        },
-        { status: 401 }
-      );
-    }
-
-    const tokenPayload = verifyAccessToken(token.value);
-    if (!tokenPayload) {
-      return Response.json(
-        {
-          success: false,
-          message: "توکن نامعتبر یا منقضی شده است",
-        },
-        { status: 401 }
-      );
-    }
-
-    const user = await UserModel.findOne({ phone: tokenPayload.phone });
-
-    if (!user) {
-      return Response.json(
-        {
-          success: false,
-          message: "کاربر یافت نشد",
-        },
-        { status: 404 }
-      );
-    }
-    // در route.js مربوط به tickets، پارامتر userId را دریافت کنید و بررسی‌های لازم را انجام دهید:
 
     // دریافت داده‌های بدنه درخواست
     let body;
@@ -137,7 +101,8 @@ export async function POST(req) {
       );
     }
 
-    
+    let user;
+
     if (userId) {
       // اعتبارسنجی userId
       if (!mongoose.Types.ObjectId.isValid(userId)) {
@@ -168,6 +133,44 @@ export async function POST(req) {
           {
             success: false,
             message: "این کاربر مسدود شده است",
+          },
+          { status: 403 }
+        );
+      }
+
+      // اگر userId ارسال شده، باید ادمین لاگین کرده باشد
+      const cookieStore = await cookies();
+      const token = cookieStore.get("token");
+
+      if (!token || !token.value) {
+        return Response.json(
+          {
+            success: false,
+            message: "لطفا وارد حساب کاربری خود شوید",
+          },
+          { status: 401 }
+        );
+      }
+
+      const tokenPayload = verifyAccessToken(token.value);
+      if (!tokenPayload) {
+        return Response.json(
+          {
+            success: false,
+            message: "توکن نامعتبر یا منقضی شده است",
+          },
+          { status: 401 }
+        );
+      }
+
+      // بررسی اینکه کاربر لاگین شده ادمین باشد
+      const adminUser = await UserModel.findOne({ phone: tokenPayload.phone });
+      if (!adminUser || adminUser.role !== "ADMIN") {
+        return Response.json(
+          {
+            success: false,
+            message:
+              "شما دسترسی لازم برای ایجاد تیکت برای کاربران دیگر را ندارید",
           },
           { status: 403 }
         );
@@ -207,6 +210,17 @@ export async function POST(req) {
             message: "کاربر لاگین‌شده یافت نشد",
           },
           { status: 404 }
+        );
+      }
+
+      // بررسی اینکه کاربر بلاک نباشد
+      if (user.isBan) {
+        return Response.json(
+          {
+            success: false,
+            message: "حساب کاربری شما مسدود شده است",
+          },
+          { status: 403 }
         );
       }
     }

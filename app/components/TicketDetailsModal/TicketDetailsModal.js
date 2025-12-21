@@ -10,11 +10,7 @@ import {
   FiCheckCircle,
   FiArchive,
   FiSend,
-  FiEdit3,
-  FiTrash2,
-  FiArrowRight,
-  FiChevronRight,
-  FiChevronLeft,
+  FiLoader,
 } from "react-icons/fi";
 
 function MessageBubble({ message, isCustomer }) {
@@ -48,30 +44,8 @@ function MessageBubble({ message, isCustomer }) {
           }`}
         >
           <p className="text-sm sm:text-base leading-relaxed whitespace-pre-wrap wrap-break-words">
-            {message.message}
+            {message.content || message.message}
           </p>
-          {message.attachments && message.attachments.length > 0 && (
-            <div className="mt-2 sm:mt-3 space-y-1 sm:space-y-2">
-              {message.attachments.map((file, index) => (
-                <div
-                  key={index}
-                  className={`flex items-center gap-1 sm:gap-2 p-2 rounded-lg ${
-                    isCustomer ? "bg-blue-400" : "bg-gray-200"
-                  }`}
-                >
-                  <FiPaperclip size={12} className="sm:size-3.5" />
-                  <span className="text-xs flex-1 truncate">{file.name}</span>
-                  <button
-                    className={`p-1 rounded ${
-                      isCustomer ? "hover:bg-blue-300" : "hover:bg-gray-300"
-                    }`}
-                  >
-                    <FiDownload size={10} className="sm:size-3" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
 
         {/* اطلاعات پیام */}
@@ -82,14 +56,17 @@ function MessageBubble({ message, isCustomer }) {
         >
           <span className="font-medium">{message.senderName}</span>
           <span className="hidden sm:inline">•</span>
-          <span>{message.createdAt}</span>
+          <span>
+            {new Date(message.createdAt).toLocaleDateString("fa-IR")}{" "}
+            {new Date(message.createdAt).toLocaleTimeString("fa-IR", {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </span>
           {message.isRead && !isCustomer && (
             <>
               <span className="hidden sm:inline">•</span>
-              <FiCheckCircle
-                size={10}
-                className="sm:size-3 text-green-500"
-              />
+              <FiCheckCircle size={10} className="sm:size-3 text-green-500" />
             </>
           )}
         </div>
@@ -98,7 +75,13 @@ function MessageBubble({ message, isCustomer }) {
   );
 }
 
-function TicketHeader({ ticket, onUpdateStatus, onArchive, onClose }) {
+function TicketHeader({
+  ticket,
+  onUpdateStatus,
+  onArchive,
+  onClose,
+  isLoading,
+}) {
   const getStatusConfig = (status) => {
     const configs = {
       open: {
@@ -163,7 +146,7 @@ function TicketHeader({ ticket, onUpdateStatus, onArchive, onClose }) {
             </span>
             <span className="hidden sm:flex items-center gap-2">
               <FiUser size={16} />
-              مشتری: <strong>{ticket.customer.name}</strong>
+              مشتری: <strong>{ticket.customer?.name}</strong>
             </span>
             <span
               className={`px-2 py-1 sm:px-3 sm:py-1 rounded-full text-xs font-medium ${priorityConfig.color}`}
@@ -177,7 +160,8 @@ function TicketHeader({ ticket, onUpdateStatus, onArchive, onClose }) {
           {!ticket.isArchived && (
             <button
               onClick={() => onArchive(ticket.id)}
-              className="p-1 sm:p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              disabled={isLoading}
+              className="p-1 sm:p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               title="بایگانی تیکت"
             >
               <FiArchive size={16} className="sm:size-[18px]" />
@@ -185,7 +169,8 @@ function TicketHeader({ ticket, onUpdateStatus, onArchive, onClose }) {
           )}
           <button
             onClick={onClose}
-            className="p-1 sm:p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            disabled={isLoading}
+            className="p-1 sm:p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
           >
             <FiX size={18} className="sm:size-5" />
           </button>
@@ -196,11 +181,18 @@ function TicketHeader({ ticket, onUpdateStatus, onArchive, onClose }) {
         <div className="flex flex-wrap items-center gap-3 sm:gap-6 text-xs sm:text-sm text-gray-600">
           <div className="flex items-center gap-1 sm:gap-2">
             <FiClock size={14} className="sm:size-4" />
-            <span>ایجاد شده: {ticket.createdAt}</span>
+            <span>
+              ایجاد شده:{" "}
+              {new Date(ticket.createdAt).toLocaleDateString("fa-IR")}{" "}
+              {new Date(ticket.createdAt).toLocaleTimeString("fa-IR", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </span>
           </div>
           <div className="flex items-center gap-1 sm:gap-2">
             <FiMessageSquare size={14} className="sm:size-4" />
-            <span>{ticket.messages.length} پیام</span>
+            <span>{ticket.messages?.length || 0} پیام</span>
           </div>
         </div>
 
@@ -208,7 +200,8 @@ function TicketHeader({ ticket, onUpdateStatus, onArchive, onClose }) {
           <select
             value={ticket.status}
             onChange={(e) => onUpdateStatus(ticket.id, e.target.value)}
-            className="w-full sm:w-auto text-sm border border-gray-300 rounded-lg px-3 py-2 sm:px-4 sm:py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+            disabled={isLoading}
+            className="w-full sm:w-auto text-sm border border-gray-300 rounded-lg px-3 py-2 sm:px-4 sm:py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <option value="open">باز</option>
             <option value="answered">پاسخ داده شده</option>
@@ -229,6 +222,7 @@ function MessagesSection({
   fileInputRef,
   attachments,
   setAttachments,
+  isLoading,
 }) {
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
@@ -246,13 +240,11 @@ function MessagesSection({
     setAttachments((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!newMessage.trim() && attachments.length === 0) return;
 
-    onSendMessage(ticket.id, {
-      sender: "admin",
-      senderName: "اپراتور پشتیبانی",
-      message: newMessage,
+    await onSendMessage(ticket.id, {
+      content: newMessage,
       attachments: attachments,
     });
 
@@ -270,18 +262,20 @@ function MessagesSection({
         ref={messagesContainerRef}
         className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6"
       >
-        {ticket.messages.length === 0 ? (
+        {ticket.messages?.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-gray-500">
             <FiMessageSquare size={48} className="mb-4" />
             <p className="text-lg">هنوز پیامی وجود ندارد</p>
             <p className="text-sm mt-2">اولین پاسخ را ارسال کنید</p>
           </div>
         ) : (
-          ticket.messages.map((message) => (
+          ticket.messages?.map((message, index) => (
             <MessageBubble
-              key={message.id}
+              key={message.id || index}
               message={message}
-              isCustomer={message.sender === "customer"}
+              isCustomer={
+                message.sender === "customer" || message.senderType === "USER"
+              }
             />
           ))
         )}
@@ -319,7 +313,8 @@ function MessagesSection({
                     </div>
                     <button
                       onClick={() => removeAttachment(index)}
-                      className="p-1 text-red-600 hover:text-red-800 transition-colors shrink-0"
+                      disabled={isLoading}
+                      className="p-1 text-red-600 hover:text-red-800 transition-colors shrink-0 disabled:opacity-50"
                     >
                       <FiX size={14} className="sm:size-4" />
                     </button>
@@ -334,7 +329,8 @@ function MessagesSection({
             <div className="flex gap-2 sm:gap-4">
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="p-2 sm:p-3 text-gray-600 hover:bg-gray-100 rounded-xl transition-colors shrink-0 border border-gray-300"
+                disabled={isLoading}
+                className="p-2 sm:p-3 text-gray-600 hover:bg-gray-100 rounded-xl transition-colors shrink-0 border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 title="افزودن فایل"
               >
                 <FiPaperclip size={18} className="sm:size-5" />
@@ -346,6 +342,7 @@ function MessagesSection({
                 multiple
                 onChange={handleFileSelect}
                 className="hidden"
+                disabled={isLoading}
               />
             </div>
 
@@ -356,7 +353,8 @@ function MessagesSection({
                 onChange={(e) => setNewMessage(e.target.value)}
                 placeholder="پیام خود را وارد کنید..."
                 rows={3}
-                className="w-full p-3 sm:p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none min-h-20"
+                disabled={isLoading}
+                className="w-full p-3 sm:p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none min-h-20 disabled:opacity-50 disabled:cursor-not-allowed"
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && e.ctrlKey) {
                     e.preventDefault();
@@ -372,11 +370,22 @@ function MessagesSection({
             {/* دکمه ارسال */}
             <button
               onClick={handleSendMessage}
-              disabled={!newMessage.trim() && attachments.length === 0}
+              disabled={
+                (!newMessage.trim() && attachments.length === 0) || isLoading
+              }
               className="px-4 py-2 sm:px-6 sm:py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2 font-medium"
             >
-              <FiSend size={16} className="sm:size-[18px]" />
-              <span className="hidden sm:inline">ارسال</span>
+              {isLoading ? (
+                <>
+                  <FiLoader className="animate-spin" size={16} />
+                  <span className="hidden sm:inline">در حال ارسال...</span>
+                </>
+              ) : (
+                <>
+                  <FiSend size={16} className="sm:size-[18px]" />
+                  <span className="hidden sm:inline">ارسال</span>
+                </>
+              )}
             </button>
           </div>
         </div>
@@ -397,11 +406,18 @@ function TicketInfoSidebar({ ticket, isSidebarOpen, toggleSidebar }) {
   };
 
   const timelineEvents = [
-    { event: "ایجاد تیکت", date: ticket.createdAt, icon: FiMessageSquare },
-    ...ticket.messages.slice(-3).map((msg) => ({
-      event: `پیام از ${msg.senderName}`,
-      date: msg.createdAt,
-      icon: msg.sender === "customer" ? FiUser : FiMessageSquare,
+    {
+      event: "ایجاد تیکت",
+      date: new Date(ticket.createdAt).toLocaleDateString("fa-IR"),
+      icon: FiMessageSquare,
+    },
+    ...(ticket.messages?.slice(-3) || []).map((msg) => ({
+      event: `پیام از ${msg.senderName || "کاربر"}`,
+      date: new Date(msg.createdAt).toLocaleDateString("fa-IR"),
+      icon:
+        msg.sender === "customer" || msg.senderType === "USER"
+          ? FiUser
+          : FiMessageSquare,
     })),
   ];
 
@@ -412,11 +428,7 @@ function TicketInfoSidebar({ ticket, isSidebarOpen, toggleSidebar }) {
         onClick={toggleSidebar}
         className="lg:hidden fixed right-4 bottom-4 z-10 p-3 bg-blue-600 text-white rounded-full shadow-lg"
       >
-        {isSidebarOpen ? (
-          <FiChevronRight size={20} />
-        ) : (
-          <FiChevronLeft size={20} />
-        )}
+        {isSidebarOpen ? <FiX size={20} /> : <FiMessageSquare size={20} />}
       </button>
 
       {/* سایدبار اطلاعات */}
@@ -436,19 +448,19 @@ function TicketInfoSidebar({ ticket, isSidebarOpen, toggleSidebar }) {
               <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                 <span className="text-sm text-gray-600">نام:</span>
                 <span className="font-medium text-sm sm:text-base truncate ml-2">
-                  {ticket.customer.name}
+                  {ticket.customer?.name || "نامشخص"}
                 </span>
               </div>
               <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                 <span className="text-sm text-gray-600">ایمیل:</span>
                 <span className="font-medium text-xs sm:text-sm truncate ml-2 text-blue-600">
-                  {ticket.customer.email}
+                  {ticket.customer?.email || "نامشخص"}
                 </span>
               </div>
               <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                 <span className="text-sm text-gray-600">تلفن:</span>
                 <span className="font-medium text-sm sm:text-base">
-                  {ticket.customer.phone}
+                  {ticket.customer?.phone || "نامشخص"}
                 </span>
               </div>
             </div>
@@ -482,7 +494,9 @@ function TicketInfoSidebar({ ticket, isSidebarOpen, toggleSidebar }) {
               <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                 <span className="text-sm text-gray-600">آخرین بروزرسانی:</span>
                 <span className="font-medium text-xs sm:text-sm">
-                  {ticket.updatedAt}
+                  {new Date(
+                    ticket.updatedAt || ticket.createdAt
+                  ).toLocaleDateString("fa-IR")}
                 </span>
               </div>
             </div>
@@ -536,14 +550,78 @@ export default function TicketDetailsModal({
   const [newMessage, setNewMessage] = useState("");
   const [attachments, setAttachments] = useState([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef(null);
 
   // Close sidebar when modal closes
   useEffect(() => {
     if (!isOpen) {
       setIsSidebarOpen(false);
+      setNewMessage("");
+      setAttachments([]);
     }
   }, [isOpen]);
+
+  // Fetch messages when modal opens
+  useEffect(() => {
+    if (isOpen && ticket?.id) {
+      fetchMessages();
+    }
+  }, [isOpen, ticket?.id]);
+
+  const fetchMessages = async () => {
+    if (!ticket?.id) return;
+
+    try {
+      setIsLoading(true);
+      const response = await fetch(`/api/tickets/${ticket.id}/messages`);
+      const result = await response.json();
+
+      if (result.success) {
+        ticket.messages = result.data.messages;
+      }
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSendMessage = async (ticketId, messageData) => {
+    try {
+      setIsLoading(true);
+      await onSendMessage(ticketId, messageData);
+      // Refresh messages after sending
+      await fetchMessages();
+    } catch (error) {
+      console.error("Error sending message:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleUpdateStatus = async (ticketId, status) => {
+    try {
+      setIsLoading(true);
+      await onUpdateStatus(ticketId, status);
+      ticket.status = status;
+    } catch (error) {
+      console.error("Error updating status:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleArchiveTicket = async (ticketId) => {
+    try {
+      setIsLoading(true);
+      await onArchiveTicket(ticketId);
+      onClose();
+    } catch (error) {
+      console.error("Error archiving ticket:", error);
+      setIsLoading(false);
+    }
+  };
 
   if (!isOpen || !ticket) return null;
 
@@ -553,9 +631,10 @@ export default function TicketDetailsModal({
         {/* هدر تیکت */}
         <TicketHeader
           ticket={ticket}
-          onUpdateStatus={onUpdateStatus}
-          onArchive={onArchiveTicket}
+          onUpdateStatus={handleUpdateStatus}
+          onArchive={handleArchiveTicket}
           onClose={onClose}
+          isLoading={isLoading}
         />
 
         {/* محتوای اصلی */}
@@ -566,10 +645,11 @@ export default function TicketDetailsModal({
               ticket={ticket}
               newMessage={newMessage}
               setNewMessage={setNewMessage}
-              onSendMessage={onSendMessage}
+              onSendMessage={handleSendMessage}
               fileInputRef={fileInputRef}
               attachments={attachments}
               setAttachments={setAttachments}
+              isLoading={isLoading}
             />
           </div>
 

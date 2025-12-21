@@ -9,7 +9,7 @@ export async function POST(req, { params }) {
   try {
     await connectToDB();
 
-    const { id } = params;
+    const { id } = await params;
     const body = await req.json();
     const { content } = body;
 
@@ -132,7 +132,7 @@ export async function POST(req, { params }) {
 export async function GET(req, { params }) {
   try {
     await connectToDB();
-    const { id } = params;
+    const { id } = await params;
 
     const messages = await TicketMessageModel.find({ ticket: id })
       .populate("sender", "username role")

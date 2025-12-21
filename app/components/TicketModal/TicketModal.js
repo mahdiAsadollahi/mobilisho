@@ -67,7 +67,6 @@ export default function TicketModal({ isOpen, onClose, onSubmit }) {
     }
   }, [isOpen, showCustomerSearch, fetchUsers]);
 
-  // در TicketModal.js، تابع handleSubmit را اینگونه تغییر دهید:
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -115,6 +114,7 @@ export default function TicketModal({ isOpen, onClose, onSubmit }) {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({
           subject: formData.subject.trim(),
           category: formData.category,
@@ -135,32 +135,105 @@ export default function TicketModal({ isOpen, onClose, onSubmit }) {
         );
       }
 
-      // اگر موفقیت‌آمیز بود
-      onSubmit({
-        ...formData,
-        ticketNumber: `TKT-${new Date().getFullYear()}-${String(
-          result.data?.ticket?.id || Date.now()
-        ).padStart(4, "0")}`,
-        apiResponse: result,
-      });
+      if (result.success) {
+        // ساخت تیکت جدید برای نمایش در فرانت‌اند
+        const ticketData = result.data.ticket;
+        const userData = ticketData.user;
+        const senderData = ticketData.sender;
 
-      // ریست فرم
-      setFormData({
-        subject: "",
-        category: "general",
-        priority: "medium",
-        message: "",
-        customer: null,
-      });
-      setSearchTerm("");
-      setShowCustomerSearch(false);
-      setUsers([]);
+        const newTicket = {
+          id: ticketData.id,
+          ticketNumber: `TKT-${new Date().getFullYear()}-${String(
+            ticketData.id || Date.now()
+          ).slice(-4)}`,
+          subject: ticketData.subject,
+          category: ticketData.category,
+          priority: ticketData.priority,
+          status: ticketData.status,
+          customer: {
+            id: userData.id,
+            name: userData.username,
+            email: "",
+            phone: userData.phone,
+          },
+          assignedTo: {
+            id: null,
+            name: "در انتظار تخصیص",
+          },
+          messages: [
+            {
+              id: Date.now(),
+              sender: senderData.role === "ADMIN" ? "admin" : "customer",
+              senderName: senderData.username,
+              message: formData.message.trim(),
+              createdAt:
+                new Date(ticketData.createdAt).toLocaleDateString("fa-IR") +
+                " " +
+                new Date(ticketData.createdAt).toLocaleTimeString("fa-IR", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                }),
+              isRead: true,
+            },
+          ],
+          createdAt:
+            new Date(ticketData.createdAt).toLocaleDateString("fa-IR") +
+            " " +
+            new Date(ticketData.createdAt).toLocaleTimeString("fa-IR", {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+          updatedAt:
+            new Date(
+              ticketData.updatedAt || ticketData.createdAt
+            ).toLocaleDateString("fa-IR") +
+            " " +
+            new Date(
+              ticketData.updatedAt || ticketData.createdAt
+            ).toLocaleTimeString("fa-IR", {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+          lastReplyAt:
+            new Date(ticketData.createdAt).toLocaleDateString("fa-IR") +
+            " " +
+            new Date(ticketData.createdAt).toLocaleTimeString("fa-IR", {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+          isArchived: false,
+          createdByAdmin: ticketData.createdByAdmin,
+        };
+
+        console.log("تیکت جدید ایجاد شده:", newTicket);
+
+        // ارسال تیکت به parent component
+        onSubmit({
+          ...formData,
+          ticketData: newTicket,
+          apiResponse: result,
+        });
+
+        // ریست فرم
+        setFormData({
+          subject: "",
+          category: "general",
+          priority: "medium",
+          message: "",
+          customer: null,
+        });
+        setSearchTerm("");
+        setShowCustomerSearch(false);
+        setUsers([]);
+
+        // نمایش پیام موفقیت
+        alert("تیکت با موفقیت ایجاد شد!");
+      } else {
+        throw new Error(result.message || "خطا در ایجاد تیکت");
+      }
     } catch (err) {
       console.error("Error submitting ticket:", err);
       setError(err.message || "خطا در ارسال داده به سرور");
-
-      // اگر onSubmit یک تابع async است، خطا را به آن منتقل نکن
-      // فقط نمایش خطا در کامپوننت مودال
     } finally {
       setIsSubmitting(false);
     }
@@ -351,7 +424,6 @@ export default function TicketModal({ isOpen, onClose, onSubmit }) {
                 <option value="low">کم</option>
                 <option value="medium">متوسط</option>
                 <option value="high">بالا</option>
-                <option value="urgent">فوری</option>
               </select>
             </div>
           </div>

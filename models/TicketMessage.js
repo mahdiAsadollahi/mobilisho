@@ -1,4 +1,4 @@
-const { default: mongoose, mongo } = require("mongoose");
+const { default: mongoose } = require("mongoose");
 
 const schema = new mongoose.Schema(
   {
@@ -23,6 +23,12 @@ const schema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    readBy: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   {
     timestamps: true,

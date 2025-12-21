@@ -15,27 +15,54 @@ const schema = new mongoose.Schema(
     },
     category: {
       type: String,
-      enum: ["technical", "payment", "order", "product", "account", "other"],
-      default: "technical",
+      enum: [
+        "technical",
+        "financial",
+        "sales",
+        "general",
+        "payment",
+        "order",
+        "product",
+        "account",
+        "other",
+      ],
+      default: "general",
       required: true,
     },
-
     priority: {
       type: String,
-      enum: ["low", "medium", "high"],
+      enum: ["low", "medium", "high", "urgent"],
       default: "medium",
       required: true,
     },
-
     status: {
       type: String,
-      enum: ["open", "answered", "closed"],
+      enum: [
+        "open",
+        "answered",
+        "closed",
+        "customer_reply",
+        "waiting",
+        "resolved",
+      ],
       default: "open",
       required: true,
     },
     lastActivityAt: {
       type: Date,
       default: Date.now,
+    },
+    createdByAdmin: {
+      type: Boolean,
+      default: false,
+    },
+    isArchived: {
+      type: Boolean,
+      default: false,
+    },
+    assignedTo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
     },
   },
   {
@@ -45,4 +72,4 @@ const schema = new mongoose.Schema(
 
 const model = mongoose.models.Ticket || mongoose.model("Ticket", schema);
 
-module.exports = model
+module.exports = model;

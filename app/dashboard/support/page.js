@@ -119,90 +119,160 @@ export default function SupportPage() {
           category: newTicketData.category,
           priority: newTicketData.priority,
           content: newTicketData.description,
+          // userId ارسال نمی‌شود تا تیکت از طرف کاربر ایجاد شود
         }),
       });
 
-      const data = await response.json();
+      const result = await response.json();
 
-      if (data.success) {
+      if (result.success) {
         toast.success("تیکت با موفقیت ایجاد شد");
         setCreateModalOpen(false);
 
-        // رفرش لیست تیکت‌ها
-        fetchTickets(filter, 1);
+        // ساخت تیکت جدید با استفاده از داده‌های API
+        const ticketData = result.data.ticket;
+        const userData = ticketData.user;
+        const senderData = ticketData.sender;
+
+        const newTicket = {
+          id: ticketData.id,
+          ticketNumber: `TKT-${new Date().getFullYear()}-${String(
+            ticketData.id || Date.now()
+          ).slice(-4)}`,
+          subject: ticketData.subject,
+          category: ticketData.category,
+          priority: ticketData.priority,
+          status: ticketData.status || "open",
+          createdAt:
+            new Date(ticketData.createdAt).toLocaleDateString("fa-IR") +
+            " - " +
+            new Date(ticketData.createdAt).toLocaleTimeString("fa-IR", {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+          lastUpdate:
+            new Date(
+              ticketData.updatedAt || ticketData.createdAt
+            ).toLocaleDateString("fa-IR") +
+            " - " +
+            new Date(
+              ticketData.updatedAt || ticketData.createdAt
+            ).toLocaleTimeString("fa-IR", {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+          messages: [
+            {
+              id: Date.now(),
+              sender: senderData.role === "ADMIN" ? "admin" : "user",
+              senderName: senderData.username,
+              message: newTicketData.description,
+              timestamp:
+                new Date(ticketData.createdAt).toLocaleDateString("fa-IR") +
+                " - " +
+                new Date(ticketData.createdAt).toLocaleTimeString("fa-IR", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                }),
+              attachments: [],
+            },
+          ],
+          customer: {
+            id: userData.id,
+            name: userData.username,
+            phone: userData.phone,
+          },
+          isArchived: false,
+          createdByAdmin: ticketData.createdByAdmin || false,
+        };
+
+        // اضافه کردن تیکت جدید به لیست
+        setTickets([newTicket, ...tickets]);
+
+        // ریست فرم
+        if (setFormData) {
+          setFormData({
+            subject: "",
+            priority: "medium",
+            category: "technical",
+            description: "",
+          });
+        }
       } else {
-        throw new Error(data.message);
+        throw new Error(result.message || "خطا در ایجاد تیکت");
       }
     } catch (error) {
       console.error("Error creating ticket:", error);
-      toast.error("خطا در ایجاد تیکت");
+      toast.error(error.message || "خطا در ایجاد تیکت");
     }
   };
 
-  const handleSendMessage = (ticketId, message) => {
-    setTickets((prev) =>
-      prev.map((ticket) => {
-        if (ticket.id === ticketId) {
-          const newMessage = {
-            id: ticket.messages.length + 1,
-            sender: "user",
-            message: message,
-            timestamp:
-              new Date().toLocaleDateString("fa-IR") +
-              " - " +
-              new Date().toLocaleTimeString("fa-IR", {
-                hour: "2-digit",
-                minute: "2-digit",
-              }),
-            attachments: [],
-          };
+  const handleSendMessage = async (ticketId, messageContent) => {
+    try {
+      // ۱. اول به API سرور ارسال کن
+      const response = await fetch(`/api/tickets/${ticketId}/messages`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          content: messageContent,
+        }),
+      });
 
-          return {
-            ...ticket,
-            status: "open",
-            lastUpdate:
-              new Date().toLocaleDateString("fa-IR") +
-              " - " +
-              new Date().toLocaleTimeString("fa-IR", {
-                hour: "2-digit",
-                minute: "2-digit",
-              }),
-            messages: [...ticket.messages, newMessage],
-          };
-        }
-        return ticket;
-      })
-    );
+      const result = await response.json();
 
-    // اگر در صفحه جزئیات هستیم، تیکت انتخاب شده رو هم آپدیت کنیم
-    if (selectedTicket && selectedTicket.id === ticketId) {
-      setSelectedTicket((prev) => ({
-        ...prev,
-        status: "open",
-        lastUpdate:
+      if (!result.success) {
+        throw new Error(result.message || "خطا در ارسال پیام");
+      }
+
+      // ۲. بعد از موفقیت API، UI رو آپدیت کن
+      const newMessage = {
+        id: Date.now(), // یا از API بگیر
+        sender: "user",
+        senderName: "شما", // یا نام کاربر از API
+        message: messageContent,
+        timestamp:
           new Date().toLocaleDateString("fa-IR") +
           " - " +
           new Date().toLocaleTimeString("fa-IR", {
             hour: "2-digit",
             minute: "2-digit",
           }),
-        messages: [
-          ...prev.messages,
-          {
-            id: prev.messages.length + 1,
-            sender: "user",
-            message: message,
-            timestamp:
-              new Date().toLocaleDateString("fa-IR") +
-              " - " +
-              new Date().toLocaleTimeString("fa-IR", {
-                hour: "2-digit",
-                minute: "2-digit",
-              }),
-            attachments: [],
-          },
-        ],
-      }));
+        attachments: [],
+      };
+
+      // آپدیت لیست تیکت‌ها
+      setTickets((prev) =>
+        prev.map((ticket) => {
+          if (ticket.id === ticketId) {
+            return {
+              ...ticket,
+              status: "customer_reply", // وضعیت به "در انتظار پاسخ" تغییر کند
+              lastUpdate: newMessage.timestamp,
+              messages: [...ticket.messages, newMessage],
+            };
+          }
+          return ticket;
+        })
+      );
+
+      // آپدیت تیکت انتخاب شده (اگر در صفحه جزئیات هستیم)
+      if (selectedTicket && selectedTicket.id === ticketId) {
+        setSelectedTicket((prev) => ({
+          ...prev,
+          status: "customer_reply",
+          lastUpdate: newMessage.timestamp,
+          messages: [...prev.messages, newMessage],
+        }));
+      }
+
+      // نمایش موفقیت
+      toast.success("پیام با موفقیت ارسال شد");
+    } catch (error) {
+      console.error("Error sending message:", error);
+      toast.error("خطا در ارسال پیام");
     }
   };
 

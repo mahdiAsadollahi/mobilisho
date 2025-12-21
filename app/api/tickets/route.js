@@ -101,9 +101,74 @@ export async function POST(req) {
       );
     }
 
-    let user;
+    // دریافت توکن و احراز هویت کاربر لاگین‌شده
+    const cookieStore = await cookies();
+    const token = cookieStore.get("token");
+
+    if (!token || !token.value) {
+      return Response.json(
+        {
+          success: false,
+          message: "لطفا وارد حساب کاربری خود شوید",
+        },
+        { status: 401 }
+      );
+    }
+
+    const tokenPayload = verifyAccessToken(token.value);
+    if (!tokenPayload) {
+      return Response.json(
+        {
+          success: false,
+          message: "توکن نامعتبر یا منقضی شده است",
+        },
+        { status: 401 }
+      );
+    }
+
+    // پیدا کردن کاربر لاگین‌شده (فرستنده)
+    const loggedInUser = await UserModel.findOne({ phone: tokenPayload.phone });
+    if (!loggedInUser) {
+      return Response.json(
+        {
+          success: false,
+          message: "کاربر لاگین‌شده یافت نشد",
+        },
+        { status: 404 }
+      );
+    }
+
+    // بررسی اینکه کاربر لاگین‌شده بلاک نباشد
+    if (loggedInUser.isBan) {
+      return Response.json(
+        {
+          success: false,
+          message: "حساب کاربری شما مسدود شده است",
+        },
+        { status: 403 }
+      );
+    }
+
+    let targetUser; // کاربر دریافت‌کننده تیکت
+    let createdByAdmin = false;
+    let sender; // فرستنده پیام
+    let senderType; // نوع فرستنده
 
     if (userId) {
+      // حالت ۱: ادمین می‌خواهد برای کاربر دیگری تیکت ایجاد کند
+
+      // بررسی اینکه کاربر لاگین‌شده ادمین باشد
+      if (loggedInUser.role !== "ADMIN") {
+        return Response.json(
+          {
+            success: false,
+            message:
+              "شما دسترسی لازم برای ایجاد تیکت برای کاربران دیگر را ندارید",
+          },
+          { status: 403 }
+        );
+      }
+
       // اعتبارسنجی userId
       if (!mongoose.Types.ObjectId.isValid(userId)) {
         return Response.json(
@@ -115,9 +180,9 @@ export async function POST(req) {
         );
       }
 
-      // پیدا کردن کاربر بر اساس userId ارسال شده
-      user = await UserModel.findById(userId);
-      if (!user) {
+      // پیدا کردن کاربر مورد نظر (دریافت‌کننده)
+      targetUser = await UserModel.findById(userId);
+      if (!targetUser) {
         return Response.json(
           {
             success: false,
@@ -127,8 +192,8 @@ export async function POST(req) {
         );
       }
 
-      // بررسی اینکه کاربر بلاک نباشد
-      if (user.isBan) {
+      // بررسی اینکه کاربر هدف بلاک نباشد
+      if (targetUser.isBan) {
         return Response.json(
           {
             success: false,
@@ -138,102 +203,28 @@ export async function POST(req) {
         );
       }
 
-      // اگر userId ارسال شده، باید ادمین لاگین کرده باشد
-      const cookieStore = await cookies();
-      const token = cookieStore.get("token");
-
-      if (!token || !token.value) {
-        return Response.json(
-          {
-            success: false,
-            message: "لطفا وارد حساب کاربری خود شوید",
-          },
-          { status: 401 }
-        );
-      }
-
-      const tokenPayload = verifyAccessToken(token.value);
-      if (!tokenPayload) {
-        return Response.json(
-          {
-            success: false,
-            message: "توکن نامعتبر یا منقضی شده است",
-          },
-          { status: 401 }
-        );
-      }
-
-      // بررسی اینکه کاربر لاگین شده ادمین باشد
-      const adminUser = await UserModel.findOne({ phone: tokenPayload.phone });
-      if (!adminUser || adminUser.role !== "ADMIN") {
-        return Response.json(
-          {
-            success: false,
-            message:
-              "شما دسترسی لازم برای ایجاد تیکت برای کاربران دیگر را ندارید",
-          },
-          { status: 403 }
-        );
-      }
+      // تنظیم اطلاعات برای حالت ادمین
+      createdByAdmin = true;
+      sender = loggedInUser._id; // فرستنده = ادمین لاگین‌شده
+      senderType = "ADMIN";
     } else {
-      // اگر userId ارسال نشده، از کاربر لاگین‌شده استفاده کن
-      const cookieStore = await cookies();
-      const token = cookieStore.get("token");
-
-      if (!token || !token.value) {
-        return Response.json(
-          {
-            success: false,
-            message: "لطفا وارد حساب کاربری خود شوید",
-          },
-          { status: 401 }
-        );
-      }
-
-      const tokenPayload = verifyAccessToken(token.value);
-      if (!tokenPayload) {
-        return Response.json(
-          {
-            success: false,
-            message: "توکن نامعتبر یا منقضی شده است",
-          },
-          { status: 401 }
-        );
-      }
-
-      // پیدا کردن کاربر لاگین‌شده
-      user = await UserModel.findOne({ phone: tokenPayload.phone });
-      if (!user) {
-        return Response.json(
-          {
-            success: false,
-            message: "کاربر لاگین‌شده یافت نشد",
-          },
-          { status: 404 }
-        );
-      }
-
-      // بررسی اینکه کاربر بلاک نباشد
-      if (user.isBan) {
-        return Response.json(
-          {
-            success: false,
-            message: "حساب کاربری شما مسدود شده است",
-          },
-          { status: 403 }
-        );
-      }
+      // حالت ۲: کاربر عادی می‌خواهد برای خودش تیکت ایجاد کند
+      targetUser = loggedInUser; // دریافت‌کننده = خود کاربر
+      createdByAdmin = false;
+      sender = loggedInUser._id; // فرستنده = خود کاربر
+      senderType = "USER";
     }
 
     // ایجاد داده تیکت
     const ticketData = {
-      user: user._id,
+      user: targetUser._id, // همیشه کاربر دریافت‌کننده
       subject: subject.trim(),
       category: category.trim(),
       priority: priority.toLowerCase(),
       status: "open",
       lastActivityAt: new Date(),
-      createdByAdmin: !!userId, // اگر userId ارسال شده، یعنی ادمین ایجاد کرده
+      createdByAdmin: createdByAdmin,
+      isArchived: false,
     };
 
     // ایجاد تیکت در دیتابیس
@@ -242,17 +233,13 @@ export async function POST(req) {
     // ایجاد اولین پیام تیکت
     const messageData = {
       ticket: createdTicket._id,
-      sender: user._id,
-      senderType: user.role === "ADMIN" ? "ADMIN" : "USER",
+      sender: sender, // ✅ درست: یا ادمین یا کاربر (فرستنده)
+      senderType: senderType, // ✅ درست
       content: content.trim(),
-      readBy: [user._id],
+      readBy: [sender], // ✅ درست
     };
 
-    const firstMessage = await TicketMessageModel.create(messageData);
-
-    // به‌روزرسانی تیکت با پیام اول
-    createdTicket.firstMessage = firstMessage._id;
-    await createdTicket.save();
+    await TicketMessageModel.create(messageData);
 
     // بازگشت پاسخ موفقیت‌آمیز
     return Response.json(
@@ -267,19 +254,21 @@ export async function POST(req) {
             priority: createdTicket.priority,
             status: createdTicket.status,
             createdAt: createdTicket.createdAt,
+            updatedAt: createdTicket.updatedAt,
             createdByAdmin: createdTicket.createdByAdmin,
+            isArchived: createdTicket.isArchived,
             user: {
-              id: user._id,
-              username: user.username,
-              phone: user.phone,
-              role: user.role,
+              id: targetUser._id, // کاربر دریافت‌کننده
+              username: targetUser.username,
+              phone: targetUser.phone,
+              role: targetUser.role,
             },
-          },
-          firstMessage: {
-            id: firstMessage._id,
-            content: firstMessage.content,
-            senderType: firstMessage.senderType,
-            createdAt: firstMessage.createdAt,
+            sender: {
+              // اطلاعات فرستنده
+              id: sender,
+              username: loggedInUser.username,
+              role: loggedInUser.role,
+            },
           },
         },
       },
@@ -306,7 +295,6 @@ export async function POST(req) {
         message: errorMessage,
         ...(process.env.NODE_ENV === "development" && {
           error: err.message,
-          stack: err.stack,
         }),
       },
       { status: statusCode }

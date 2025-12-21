@@ -126,21 +126,33 @@ export default function SupportTickets() {
   // در تابع handleCreateTicket در page.js این تغییرات را اعمال کنید:
   const handleCreateTicket = async (ticketData) => {
     try {
+      console.log("تیکت دریافتی:", ticketData);
+
       // اگر پاسخ API از سرور آمده باشد
-      if (ticketData.apiResponse) {
+      if (ticketData.apiResponse && ticketData.apiResponse.success) {
         const apiTicket = ticketData.apiResponse.data.ticket;
+
+        console.log("داده‌های API:", apiTicket);
 
         const newTicket = {
           id: apiTicket.id || Math.max(...tickets.map((t) => t.id), 0) + 1,
-          ...ticketData,
           ticketNumber: `TKT-${new Date().getFullYear()}-${String(
-            apiTicket.id || tickets.length + 1
+            tickets.length + 1
           ).padStart(4, "0")}`,
-          subject: apiTicket.subject,
-          category: apiTicket.category,
-          priority: apiTicket.priority,
+          subject: ticketData.subject,
+          category: ticketData.category,
+          priority: ticketData.priority,
           status: apiTicket.status || "open",
-          customer: ticketData.customer,
+          customer: {
+            id: ticketData.customer._id,
+            name: ticketData.customer.username,
+            email: "",
+            phone: ticketData.customer.phone,
+          },
+          assignedTo: {
+            id: 1,
+            name: "پشتیبانی فروش",
+          },
           messages: [
             {
               id: 1,
@@ -158,9 +170,9 @@ export default function SupportTickets() {
             },
           ],
           createdAt:
-            new Date(apiTicket.createdAt).toLocaleDateString("fa-IR") +
+            new Date().toLocaleDateString("fa-IR") +
             " " +
-            new Date(apiTicket.createdAt).toLocaleTimeString("fa-IR", {
+            new Date().toLocaleTimeString("fa-IR", {
               hour: "2-digit",
               minute: "2-digit",
             }),
@@ -181,11 +193,17 @@ export default function SupportTickets() {
           isArchived: false,
         };
 
+        console.log("تیکت جدید ایجاد شده:", newTicket);
+
         setTickets([newTicket, ...tickets]);
         setShowTicketModal(false);
 
-        // نمایش پیام موفقیت
+        // نمایش پیام موفقیت با toast یا alert بهتر
         alert("تیکت با موفقیت ایجاد شد!");
+      } else {
+        // اگر apiResponse وجود نداشت یا success نبود
+        console.error("پاسخ API نامعتبر:", ticketData.apiResponse);
+        alert("خطا در ایجاد تیکت. لطفاً دوباره تلاش کنید.");
       }
     } catch (error) {
       console.error("Error creating ticket:", error);

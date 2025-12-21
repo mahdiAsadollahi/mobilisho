@@ -34,6 +34,7 @@ export async function POST(req) {
     }
 
     const user = await UserModel.findOne({ phone: tokenPayload.phone });
+
     if (!user) {
       return Response.json(
         {
@@ -136,9 +137,7 @@ export async function POST(req) {
       );
     }
 
-    // بررسی کاربر: اولویت با userId ارسال شده، در غیر این صورت از کاربر لاگین‌شده استفاده می‌شود
-    let user;
-
+    
     if (userId) {
       // اعتبارسنجی userId
       if (!mongoose.Types.ObjectId.isValid(userId)) {

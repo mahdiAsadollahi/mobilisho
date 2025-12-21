@@ -67,6 +67,7 @@ export default function TicketModal({ isOpen, onClose, onSubmit }) {
     }
   }, [isOpen, showCustomerSearch, fetchUsers]);
 
+  // در TicketModal.js، تابع handleSubmit را اینگونه تغییر دهید:
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -100,6 +101,14 @@ export default function TicketModal({ isOpen, onClose, onSubmit }) {
     setIsSubmitting(true);
 
     try {
+      console.log("ارسال داده‌ها به API:", {
+        subject: formData.subject.trim(),
+        category: formData.category,
+        priority: formData.priority,
+        content: formData.message.trim(),
+        userId: formData.customer._id,
+      });
+
       // ارسال به API سرور
       const response = await fetch("/api/tickets", {
         method: "POST",
@@ -111,14 +120,19 @@ export default function TicketModal({ isOpen, onClose, onSubmit }) {
           category: formData.category,
           priority: formData.priority,
           content: formData.message.trim(),
-          userId: formData.customer._id, // ارسال ID کاربر
+          userId: formData.customer._id,
         }),
       });
 
+      console.log("پاسخ API:", response.status, response.statusText);
+
       const result = await response.json();
+      console.log("نتیجه API:", result);
 
       if (!response.ok) {
-        throw new Error(result.message || "خطا در ایجاد تیکت");
+        throw new Error(
+          result.message || `خطا در ایجاد تیکت (${response.status})`
+        );
       }
 
       // اگر موفقیت‌آمیز بود
@@ -142,8 +156,11 @@ export default function TicketModal({ isOpen, onClose, onSubmit }) {
       setShowCustomerSearch(false);
       setUsers([]);
     } catch (err) {
-      setError(err.message || "خطا در ارسال داده به سرور");
       console.error("Error submitting ticket:", err);
+      setError(err.message || "خطا در ارسال داده به سرور");
+
+      // اگر onSubmit یک تابع async است، خطا را به آن منتقل نکن
+      // فقط نمایش خطا در کامپوننت مودال
     } finally {
       setIsSubmitting(false);
     }

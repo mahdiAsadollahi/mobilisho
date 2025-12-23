@@ -240,18 +240,51 @@ function MessagesSection({
     setAttachments((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleSendMessage = async () => {
-    if (!newMessage.trim() && attachments.length === 0) return;
+  const handleSendMessage = async (ticketId, messageData) => {
+    try {
+      setIsLoading(true);
 
-    await onSendMessage(ticket.id, {
-      content: newMessage,
-      attachments: attachments,
-    });
+      // ارسال به API
+      const response = await fetch(`/api/tickets/${ticketId}/messages`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          content: messageData.content, // ✅ فقط content ارسال شود
+        }),
+      });
 
-    setNewMessage("");
-    setAttachments([]);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+      const result = await response.json();
+
+      if (result.success) {
+        // آپدیت تیکت با پیام جدید
+        if (result.data.message) {
+          const newMsg = {
+            id: result.data.message.id,
+            sender: result.data.message.sender, // "admin" از API
+            senderName: result.data.message.senderName,
+            content: result.data.message.content,
+            createdAt: result.data.message.createdAt,
+            isRead: true,
+          };
+
+          // آپدیت local state
+          if (!ticket.messages) ticket.messages = [];
+          ticket.messages = [...ticket.messages, newMsg];
+          setNewMessage("");
+          setAttachments([]);
+        }
+      } else {
+        console.error("Error sending message:", result.message);
+        alert(result.message || "خطا در ارسال پیام");
+      }
+    } catch (error) {
+      console.error("Error sending message:", error);
+      alert("خطا در ارسال پیام");
+    } finally {
+      setIsLoading(false);
     }
   };
 

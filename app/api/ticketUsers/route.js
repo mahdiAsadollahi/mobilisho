@@ -6,12 +6,11 @@ export async function GET(req) {
   try {
     await connectToDB();
 
-    // دریافت پارامتر جستجو از URL
     const { searchParams } = new URL(req.url);
     const search = searchParams.get("search") || "";
     const limit = parseInt(searchParams.get("limit")) || 10;
 
-    // ایجاد کوئری جستجو
+    
     let query = {};
 
     if (search) {
@@ -21,11 +20,10 @@ export async function GET(req) {
       ];
     }
 
-    // فقط کاربران عادی (نه ادمین) را دریافت کنیم
     query.role = "USER";
 
     const users = await UserModel.find(query)
-      .select("username phone role") // فقط فیلدهای مورد نیاز
+      .select("username phone role isBan") 
       .sort({ username: 1 })
       .limit(limit);
 

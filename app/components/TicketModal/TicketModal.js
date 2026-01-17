@@ -32,7 +32,7 @@ export default function TicketModal({ isOpen, onClose, onSubmit }) {
         }
         params.append("limit", "10");
 
-        const response = await fetch(`/api/users?${params.toString()}`);
+        const response = await fetch(`/api/ticketUsers?${params.toString()}`);
         const result = await response.json();
 
         if (response.ok && result.success) {

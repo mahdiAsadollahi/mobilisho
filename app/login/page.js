@@ -211,7 +211,6 @@ export default function LoginPage() {
       return;
     }
 
-    // اعتبارسنجی قوی بودن رمز عبور
     const strongPasswordRegex =
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     if (!strongPasswordRegex.test(formData.newPassword)) {

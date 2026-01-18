@@ -389,9 +389,6 @@ export default function UsersManagement() {
                   وضعیت
                 </th>
                 <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  آمار خرید
-                </th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   عملیات
                 </th>
               </tr>

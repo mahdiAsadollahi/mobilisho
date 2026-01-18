@@ -13,7 +13,6 @@ import {
 } from "react-icons/fi";
 import { FaBan } from "react-icons/fa";
 
-
 function UserRow({
   user,
   onEdit,
@@ -43,7 +42,7 @@ function UserRow({
     if (user.isBanned) {
       return (
         <span className="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 flex items-center gap-1 w-fit">
-          <FaBan  size={14} />
+          <FaBan size={14} />
           مسدود شده
         </span>
       );
@@ -78,33 +77,17 @@ function UserRow({
           </div>
           <div className="flex flex-col gap-1">
             <div className="font-medium text-gray-900">{user.name}</div>
-            <div className="text-sm text-gray-600">{user.email}</div>
             <div className="text-xs text-gray-500">{user.phone}</div>
           </div>
         </div>
       </td>
       <td className="px-4 py-4">
-        <div className="flex flex-col gap-2">
-          {getRoleBadge(user.role)}
-          <div className="text-xs text-gray-500">عضویت: {user.joinDate}</div>
-        </div>
+        <div className="flex flex-col gap-2">{getRoleBadge(user.role)}</div>
       </td>
       <td className="px-4 py-4">
-        <div className="flex flex-col gap-2">
-          {getStatusBadge(user)}
-          <div className="text-xs text-gray-500">
-            آخرین فعالیت: {user.lastActivity}
-          </div>
-        </div>
+        <div className="flex flex-col gap-2">{getStatusBadge(user)}</div>
       </td>
-      <td className="px-4 py-4">
-        <div className="flex flex-col gap-1">
-          <div className="text-sm text-gray-900">{user.ordersCount} سفارش</div>
-          <div className="text-xs text-gray-500">
-            مجموع خرید: {user.totalSpent.toLocaleString()} تومان
-          </div>
-        </div>
-      </td>
+
       <td className="px-4 py-4">
         <div className="flex items-center gap-1 flex-wrap">
           <button
@@ -149,7 +132,7 @@ function UserRow({
               className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
               title="مسدود کردن"
             >
-              <FaBan  size={16} />
+              <FaBan size={16} />
             </button>
           ) : (
             <button

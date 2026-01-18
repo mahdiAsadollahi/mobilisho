@@ -92,6 +92,9 @@ export async function POST(req, res) {
       }
     );
   } catch (err) {
+
+    console.log("");
+
     return Response.json(
       {
         message: "خطا در ساخت کاربر",

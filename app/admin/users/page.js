@@ -142,6 +142,9 @@ export default function UsersManagement() {
           text: "نام کاربری باید حداقل ۳ کاراکتر داشته باشد",
           confirmButtonColor: "#3b82f6",
         });
+
+        setLoading(false);
+
         return;
       }
 
@@ -155,6 +158,9 @@ export default function UsersManagement() {
           text: "لطفا شماره تلفن معتبر وارد کنید (مانند 09123456789)",
           confirmButtonColor: "#3b82f6",
         });
+
+        setLoading(false);
+
         return;
       }
 
@@ -165,6 +171,9 @@ export default function UsersManagement() {
           text: "رمز عبور باید حداقل ۸ کاراکتر داشته باشد",
           confirmButtonColor: "#3b82f6",
         });
+
+        setLoading(false);
+
         return;
       }
 
@@ -179,16 +188,9 @@ export default function UsersManagement() {
           text: "رمز عبور باید شامل حروف بزرگ، کوچک، عدد و کاراکتر ویژه باشد",
           confirmButtonColor: "#3b82f6",
         });
-        return;
-      }
 
-      if (formData.password !== formData.confirmPassword) {
-        Swal.fire({
-          icon: "error",
-          title: "عدم تطابق رمز عبور",
-          text: "رمز عبور و تکرار آن مطابقت ندارند",
-          confirmButtonColor: "#ef4444",
-        });
+        setLoading(false);
+
         return;
       }
 
@@ -218,6 +220,8 @@ export default function UsersManagement() {
             text: data.message || "خطایی رخ داده است",
             confirmButtonColor: "#ef4444",
           });
+
+          setLoading(false);
         }
       } catch (error) {
         console.error("Register error:", error);
@@ -227,6 +231,8 @@ export default function UsersManagement() {
           text: "خطا در ارتباط با سرور. لطفا دوباره تلاش کنید",
           confirmButtonColor: "#ef4444",
         });
+
+        setLoading(false);
       }
     }
 

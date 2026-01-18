@@ -25,7 +25,7 @@ function UserDetailsModal({ isOpen, onClose, user }) {
               {user.avatar ? (
                 <img
                   src={user.avatar}
-                  alt={user.name}
+                  alt={user.username}
                   className="w-20 h-20 rounded-full"
                 />
               ) : (
@@ -33,8 +33,9 @@ function UserDetailsModal({ isOpen, onClose, user }) {
               )}
             </div>
             <div>
-              <h4 className="text-xl font-bold text-gray-800">{user.name}</h4>
-              <p className="text-gray-600">{user.email}</p>
+              <h4 className="text-xl font-bold text-gray-800">
+                {user.username}
+              </h4>
               <p className="text-gray-500 text-sm">{user.phone}</p>
             </div>
           </div>
@@ -49,38 +50,26 @@ function UserDetailsModal({ isOpen, onClose, user }) {
                 <div className="flex justify-between">
                   <span className="text-gray-600">نقش:</span>
                   <span className="font-medium">
-                    {user.role === "admin"
-                      ? "ادمین"
-                      : user.role === "moderator"
-                      ? "مدیر محتوا"
-                      : "کاربر عادی"}
+                    {user.role === "ADMIN" ? "ادمین" : "کاربر عادی"}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">وضعیت:</span>
                   <span
                     className={`font-medium ${
-                      user.isBanned
+                      user.isBan
                         ? "text-red-600"
                         : user.status === "active"
                         ? "text-green-600"
                         : "text-yellow-600"
                     }`}
                   >
-                    {user.isBanned
+                    {user.isBan
                       ? "مسدود شده"
                       : user.status === "active"
                       ? "فعال"
                       : "غیرفعال"}
                   </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">تاریخ عضویت:</span>
-                  <span className="font-medium">{user.joinDate}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">آخرین فعالیت:</span>
-                  <span className="font-medium">{user.lastActivity}</span>
                 </div>
               </div>
             </div>
@@ -93,39 +82,16 @@ function UserDetailsModal({ isOpen, onClose, user }) {
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-gray-600">تعداد سفارشات:</span>
-                  <span className="font-medium">{user.ordersCount} سفارش</span>
+                  <span className="font-medium">10 سفارش</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">مجموع خرید:</span>
-                  <span className="font-medium">
-                    {user.totalSpent.toLocaleString()} تومان
-                  </span>
+                  <span className="font-medium">10,000,000 تومان</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">میانگین خرید:</span>
-                  <span className="font-medium">
-                    {user.averageOrderValue?.toLocaleString()} تومان
-                  </span>
+                  <span className="font-medium">2,100,000 تومان</span>
                 </div>
-              </div>
-            </div>
-          </div>
-
-          {/* اطلاعات تماس */}
-          <div className="space-y-4">
-            <h5 className="font-bold text-gray-800 border-b pb-2">
-              اطلاعات تماس
-            </h5>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm text-gray-600 mb-1">آدرس</label>
-                <p className="text-gray-800">{user.address || "ثبت نشده"}</p>
-              </div>
-              <div>
-                <label className="block text-sm text-gray-600 mb-1">
-                  کد پستی
-                </label>
-                <p className="text-gray-800">{user.postalCode || "ثبت نشده"}</p>
               </div>
             </div>
           </div>

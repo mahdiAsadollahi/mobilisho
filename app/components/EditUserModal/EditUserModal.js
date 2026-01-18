@@ -6,7 +6,7 @@ import { FiXCircle } from "react-icons/fi";
 
 function EditUserModal({ isOpen, onClose, user, onSave, loading }) {
   const [formData, setFormData] = useState({
-    name: "",
+    username: "",
     phone: "",
     role: "USER",
     password: "",
@@ -16,13 +16,13 @@ function EditUserModal({ isOpen, onClose, user, onSave, loading }) {
   useEffect(() => {
     if (user) {
       setFormData({
-        name: user.name || "",
+        username: user.username || "",
         phone: user.phone || "",
         role: user.role || "USER",
       });
     } else {
       setFormData({
-        name: "",
+        username: "",
         phone: "",
         role: "USER",
       });
@@ -31,6 +31,7 @@ function EditUserModal({ isOpen, onClose, user, onSave, loading }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    console.log("EDITUSERMODAL data submit ->", formData);
     onSave(formData);
   };
 
@@ -58,9 +59,9 @@ function EditUserModal({ isOpen, onClose, user, onSave, loading }) {
             </label>
             <input
               type="text"
-              value={formData.name}
+              value={formData.username}
               onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
+                setFormData({ ...formData, username: e.target.value })
               }
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
@@ -92,8 +93,8 @@ function EditUserModal({ isOpen, onClose, user, onSave, loading }) {
               }
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="user">کاربر عادی</option>
-              <option value="admin">ادمین</option>
+              <option value="USER">کاربر عادی</option>
+              <option value="ADMIN">ادمین</option>
             </select>
           </div>
 

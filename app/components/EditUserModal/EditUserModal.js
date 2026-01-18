@@ -1,33 +1,30 @@
 // app/admin/users/components/EditUserModal.js
 "use client";
 import { useState, useEffect } from "react";
+import { FaEye, FaEyeSlash, FaLock } from "react-icons/fa";
 import { FiXCircle } from "react-icons/fi";
 
 function EditUserModal({ isOpen, onClose, user, onSave, loading }) {
   const [formData, setFormData] = useState({
     name: "",
-    email: "",
     phone: "",
-    role: "user",
-    status: "active",
+    role: "USER",
+    password: "",
   });
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (user) {
       setFormData({
         name: user.name || "",
-        email: user.email || "",
         phone: user.phone || "",
-        role: user.role || "user",
-        status: user.status || "active",
+        role: user.role || "USER",
       });
     } else {
       setFormData({
         name: "",
-        email: "",
         phone: "",
-        role: "user",
-        status: "active",
+        role: "USER",
       });
     }
   }, [user]);
@@ -57,28 +54,13 @@ function EditUserModal({ isOpen, onClose, user, onSave, loading }) {
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              نام کامل
+              نام کاربری
             </label>
             <input
               type="text"
               value={formData.name}
               onChange={(e) =>
                 setFormData({ ...formData, name: e.target.value })
-              }
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              ایمیل
-            </label>
-            <input
-              type="email"
-              value={formData.email}
-              onChange={(e) =>
-                setFormData({ ...formData, email: e.target.value })
               }
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
@@ -111,25 +93,37 @@ function EditUserModal({ isOpen, onClose, user, onSave, loading }) {
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="user">کاربر عادی</option>
-              <option value="moderator">مدیر محتوا</option>
               <option value="admin">ادمین</option>
             </select>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              وضعیت
+          <div className="space-y-3">
+            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+              <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                <FaLock className="text-gray-600 dark:text-gray-400 text-sm" />
+              </div>
+              رمز عبور
             </label>
-            <select
-              value={formData.status}
-              onChange={(e) =>
-                setFormData({ ...formData, status: e.target.value })
-              }
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="active">فعال</option>
-              <option value="inactive">غیرفعال</option>
-            </select>
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                value={formData.password}
+                onChange={(e) =>
+                  setFormData({ ...formData, password: e.target.value })
+                }
+                placeholder="رمز عبور کاربر را وارد کنید"
+                required
+                className="w-full  border-2 border-gray-200 dark:border-gray-600 focus:border-gray-400 dark:focus:border-gray-500 transition-all duration-200 rounded-xl px-4 py-3 pr-12"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors duration-200 p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
           </div>
 
           <div className="flex gap-3 pt-4">

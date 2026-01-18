@@ -126,26 +126,7 @@ export default function UsersManagement() {
         )
       );
     } else {
-      const newUser = {
-        id: Math.max(...users.map((u) => u.id), 0) + 1,
-        ...formData,
-        isBanned: false,
-        joinDate: new Date().toLocaleDateString("fa-IR"),
-        lastActivity:
-          new Date().toLocaleDateString("fa-IR") +
-          " - " +
-          new Date().toLocaleTimeString("fa-IR", {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-        ordersCount: 0,
-        totalSpent: 0,
-        averageOrderValue: 0,
-        address: "",
-        postalCode: "",
-        avatar: null,
-      };
-      setUsers([...users, newUser]);
+      console.log("im in save user in page.js ->", formData);
     }
 
     setLoading(false);

@@ -31,7 +31,6 @@ function EditUserModal({ isOpen, onClose, user, onSave, loading }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("EDITUSERMODAL data submit ->", formData);
     onSave(formData);
   };
 

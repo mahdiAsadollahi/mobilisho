@@ -39,7 +39,7 @@ function UserRow({
   };
 
   const getStatusBadge = (user) => {
-    if (user.isBanned) {
+    if (user.isBan) {
       return (
         <span className="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 flex items-center gap-1 w-fit">
           <FaBan size={14} />
@@ -61,14 +61,14 @@ function UserRow({
   };
 
   return (
-    <tr key={user.id} className="hover:bg-gray-50">
+    <tr key={user._id} className="hover:bg-gray-50">
       <td className="px-4 py-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
             {user.avatar ? (
               <img
                 src={user.avatar}
-                alt={user.name}
+                alt={user.username}
                 className="w-10 h-10 rounded-full"
               />
             ) : (
@@ -76,7 +76,7 @@ function UserRow({
             )}
           </div>
           <div className="flex flex-col gap-1">
-            <div className="font-medium text-gray-900">{user.name}</div>
+            <div className="font-medium text-gray-900">{user.username}</div>
             <div className="text-xs text-gray-500">{user.phone}</div>
           </div>
         </div>
@@ -126,7 +126,7 @@ function UserRow({
             <FiLock size={16} />
           </button>
 
-          {!user.isBanned ? (
+          {!user.isBan ? (
             <button
               onClick={() => onBan(user)}
               className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"

@@ -1,6 +1,6 @@
 // app/admin/users/page.js
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FiUser } from "react-icons/fi";
 import StatsCards from "@/app/components/StatsCards/StatsCards";
 import UserTabs from "@/app/components/UserTabs/UserTabs";
@@ -26,89 +26,26 @@ export default function UsersManagement() {
     dateTo: "",
   });
 
-  const [users, setUsers] = useState([
-    {
-      id: 1,
-      name: "محمد احمدی",
-      email: "m.ahmadi@example.com",
-      phone: "09123456789",
-      role: "admin",
-      status: "active",
-      isBanned: false,
-      joinDate: "1402/10/15",
-      lastActivity: "1402/12/20 - 14:30",
-      ordersCount: 12,
-      totalSpent: 12500000,
-      averageOrderValue: 1041666,
-      address: "تهران، خیابان ولیعصر، پلاک ۱۲۳",
-      postalCode: "1234567890",
-      avatar: null,
-    },
-    {
-      id: 2,
-      name: "فاطمه محمدی",
-      email: "f.mohammadi@example.com",
-      phone: "09129876543",
-      role: "user",
-      status: "active",
-      isBanned: false,
-      joinDate: "1402/11/20",
-      lastActivity: "1402/12/19 - 09:15",
-      ordersCount: 5,
-      totalSpent: 3200000,
-      averageOrderValue: 640000,
-      address: "اصفهان، خیابان چهارباغ، پلاک ۴۵",
-      postalCode: "9876543210",
-      avatar: null,
-    },
-    {
-      id: 3,
-      name: "رضا کریمی",
-      email: "r.karimi@example.com",
-      phone: "09351234567",
-      role: "user",
-      status: "inactive",
-      isBanned: true,
-      joinDate: "1402/09/10",
-      lastActivity: "1402/11/25 - 16:45",
-      ordersCount: 2,
-      totalSpent: 850000,
-      averageOrderValue: 425000,
-      address: "مشهد، بلوار وکیل آباد، پلاک ۷۸",
-      postalCode: "4567891230",
-      avatar: null,
-    },
-    {
-      id: 4,
-      name: "سارا نوروزی",
-      email: "s.noroozi@example.com",
-      phone: "09107654321",
-      role: "moderator",
-      status: "active",
-      isBanned: false,
-      joinDate: "1402/12/01",
-      lastActivity: "1402/12/21 - 11:20",
-      ordersCount: 8,
-      totalSpent: 5600000,
-      averageOrderValue: 700000,
-      address: "شیراز، خیابان زند، پلاک ۳۴",
-      postalCode: "7891234560",
-      avatar: null,
-    },
-  ]);
+  const [users, setUsers] = useState([]);
+
+  useEffect(() => {
+    const getUsers = async () => {
+      const res = await fetch("/api/users");
+      const data = await res.json();
+
+      setUsers(data.data);
+    };
+
+    getUsers();
+  }, []);
 
   const roleConfig = {
-    user: {
+    USER: {
       color: "bg-green-100 text-green-800",
       text: "کاربر عادی",
       icon: FiUser,
     },
-    moderator: {
-      color: "bg-purple-100 text-purple-800",
-      text: "مدیر محتوا",
-      icon: () => <FiUser size={14} />, // در اینجا باید یک آیکون مناسب استفاده شود
-    },
-    admin: {
+    ADMIN: {
       color: "bg-blue-100 text-blue-800",
       text: "ادمین",
       icon: () => <FiUser size={14} />, // در اینجا باید یک آیکون مناسب استفاده شود
@@ -396,7 +333,7 @@ export default function UsersManagement() {
             <tbody className="divide-y divide-gray-200">
               {filteredUsers.map((user) => (
                 <UserRow
-                  key={user.id}
+                  key={user._id}
                   user={user}
                   onEdit={openEditModal}
                   onDelete={openDeleteModal}

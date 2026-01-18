@@ -9,6 +9,7 @@ import UserRow from "@/app/components/UserRow/UserRow";
 import EditUserModal from "@/app/components/EditUserModal/EditUserModal";
 import UserDetailsModal from "@/app/components/UserDetailsModal/UserDetailsModal";
 import DeleteModal from "@/app/components/DeleteModal/DeleteModal";
+import Swal from "sweetalert2";
 
 export default function UsersManagement() {
   const [activeTab, setActiveTab] = useState("all");
@@ -127,6 +128,106 @@ export default function UsersManagement() {
       );
     } else {
       console.log("im in save user in page.js ->", formData);
+      const user = {
+        username: formData.username,
+        phone: formData.phone,
+        role: formData.role,
+        password: formData.password,
+      };
+
+      if (!formData.username || formData.username.length < 3) {
+        Swal.fire({
+          icon: "warning",
+          title: "نام کاربری نامعتبر",
+          text: "نام کاربری باید حداقل ۳ کاراکتر داشته باشد",
+          confirmButtonColor: "#3b82f6",
+        });
+        return;
+      }
+
+      if (
+        !formData.phone ||
+        !/^(\+98|0)?9\d{9}$/.test(formData.phone.replace(/\s+/g, ""))
+      ) {
+        Swal.fire({
+          icon: "warning",
+          title: "شماره تلفن نامعتبر",
+          text: "لطفا شماره تلفن معتبر وارد کنید (مانند 09123456789)",
+          confirmButtonColor: "#3b82f6",
+        });
+        return;
+      }
+
+      if (formData.password.length < 8) {
+        Swal.fire({
+          icon: "warning",
+          title: "رمز عبور کوتاه",
+          text: "رمز عبور باید حداقل ۸ کاراکتر داشته باشد",
+          confirmButtonColor: "#3b82f6",
+        });
+        return;
+      }
+
+      if (
+        !/(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-])/.test(
+          formData.password
+        )
+      ) {
+        Swal.fire({
+          icon: "warning",
+          title: "رمز عبور ضعیف",
+          text: "رمز عبور باید شامل حروف بزرگ، کوچک، عدد و کاراکتر ویژه باشد",
+          confirmButtonColor: "#3b82f6",
+        });
+        return;
+      }
+
+      if (formData.password !== formData.confirmPassword) {
+        Swal.fire({
+          icon: "error",
+          title: "عدم تطابق رمز عبور",
+          text: "رمز عبور و تکرار آن مطابقت ندارند",
+          confirmButtonColor: "#ef4444",
+        });
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/users", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(user),
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          Swal.close();
+
+          Swal.fire({
+            icon: "success",
+            title: "ثبت نام موفق",
+            text: data.message || "حساب کاربری با موفقیت ایجاد شد",
+          });
+        } else {
+          Swal.fire({
+            icon: "error",
+            title: "خطا در ثبت نام",
+            text: data.message || "خطایی رخ داده است",
+            confirmButtonColor: "#ef4444",
+          });
+        }
+      } catch (error) {
+        console.error("Register error:", error);
+        Swal.fire({
+          icon: "error",
+          title: "خطای ارتباط",
+          text: "خطا در ارتباط با سرور. لطفا دوباره تلاش کنید",
+          confirmButtonColor: "#ef4444",
+        });
+      }
     }
 
     setLoading(false);

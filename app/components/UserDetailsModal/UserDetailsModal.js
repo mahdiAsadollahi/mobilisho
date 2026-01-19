@@ -3,8 +3,6 @@
 import { FiUser, FiXCircle } from "react-icons/fi";
 
 function UserDetailsModal({ isOpen, onClose, user }) {
-  console.log("user detail modal -> ", user);
-
   if (!isOpen || !user) return null;
 
   return (
@@ -59,18 +57,10 @@ function UserDetailsModal({ isOpen, onClose, user }) {
                   <span className="text-gray-600">وضعیت:</span>
                   <span
                     className={`font-medium ${
-                      user.isBan
-                        ? "text-red-600"
-                        : user.status === "active"
-                        ? "text-green-600"
-                        : "text-yellow-600"
+                      user.isBan ? "text-red-600" : "text-green-500"
                     }`}
                   >
-                    {user.isBan
-                      ? "مسدود شده"
-                      : user.status === "active"
-                      ? "فعال"
-                      : "غیرفعال"}
+                    {user.isBan ? "مسدود شده" : "فعال"}
                   </span>
                 </div>
               </div>

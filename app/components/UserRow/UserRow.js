@@ -112,9 +112,8 @@ function UserRow({
               className="p-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
               title="تغییر نقش"
             >
-              <option value="user">کاربر</option>
-              <option value="moderator">مدیر محتوا</option>
-              <option value="admin">ادمین</option>
+              <option value="USER">کاربر</option>
+              <option value="ADMIN">ادمین</option>
             </select>
           )}
 

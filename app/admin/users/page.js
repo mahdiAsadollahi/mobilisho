@@ -213,6 +213,15 @@ export default function UsersManagement() {
             title: "ثبت نام موفق",
             text: data.message || "حساب کاربری با موفقیت ایجاد شد",
           });
+
+          const getUsers = async () => {
+            const res = await fetch("/api/users");
+            const data = await res.json();
+
+            setUsers(data.data);
+          };
+
+          getUsers();
         } else {
           Swal.fire({
             icon: "error",

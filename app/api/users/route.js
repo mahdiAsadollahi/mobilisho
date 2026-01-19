@@ -82,18 +82,14 @@ export async function POST(req, res) {
     return Response.json(
       {
         message: "کاربر با موفقیت ایجاد شد",
-        data: { username, phone, role: isFirstUser ? roles.ADMIN : roles.USER },
+        data: { username, phone, role },
       },
       {
         status: 201,
-        headers: {
-          "Set-Cookie": `token=${accessToken};path=/;httpOnly=true`,
-        },
       }
     );
   } catch (err) {
-
-    console.log("");
+    console.log("POST API DEBUG ->", err.message);
 
     return Response.json(
       {

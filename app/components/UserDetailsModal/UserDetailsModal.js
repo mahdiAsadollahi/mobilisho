@@ -3,6 +3,8 @@
 import { FiUser, FiXCircle } from "react-icons/fi";
 
 function UserDetailsModal({ isOpen, onClose, user }) {
+  console.log("user detail modal -> ", user);
+
   if (!isOpen || !user) return null;
 
   return (
@@ -80,7 +82,7 @@ function UserDetailsModal({ isOpen, onClose, user }) {
                 آمار خرید
               </h5>
               <div className="space-y-2">
-                <div className="flex justify-between">
+                {/* <div className="flex justify-between">
                   <span className="text-gray-600">تعداد سفارشات:</span>
                   <span className="font-medium">10 سفارش</span>
                 </div>
@@ -91,6 +93,12 @@ function UserDetailsModal({ isOpen, onClose, user }) {
                 <div className="flex justify-between">
                   <span className="text-gray-600">میانگین خرید:</span>
                   <span className="font-medium">2,100,000 تومان</span>
+                </div> */}
+
+                <div className="flex justify-between">
+                  <span className="text-gray-700 font-bold text-xl">
+                    در حال توسعه ...
+                  </span>
                 </div>
               </div>
             </div>

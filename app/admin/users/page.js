@@ -109,25 +109,16 @@ export default function UsersManagement() {
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     if (selectedUser) {
-      setUsers(
-        users.map((user) =>
-          user.id === selectedUser.id
-            ? {
-                ...user,
-                ...formData,
-                lastActivity:
-                  new Date().toLocaleDateString("fa-IR") +
-                  " - " +
-                  new Date().toLocaleTimeString("fa-IR", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  }),
-              }
-            : user
-        )
-      );
+      console.log(selectedUser);
+      const user = {
+        username: formData.username,
+        phone: formData.phone,
+        role: formData.role,
+        password: formData.password,
+      };
+
+      console.log("EDIT USER FLAG ->", user);
     } else {
-      console.log("im in save user in page.js ->", formData);
       const user = {
         username: formData.username,
         phone: formData.phone,

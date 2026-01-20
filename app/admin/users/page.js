@@ -116,8 +116,6 @@ export default function UsersManagement() {
         role: formData.role,
         password: formData.password,
       };
-
-      console.log("EDIT USER FLAG ->", user);
     } else {
       const user = {
         username: formData.username,

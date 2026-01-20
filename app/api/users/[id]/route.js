@@ -1,5 +1,5 @@
 import connectToDB from "@/configs/db";
-import { validatePassword, validatePhone } from "@/utils/auth";
+import { hashPassword, validatePassword, validatePhone } from "@/utils/auth";
 import UserModel from "@/models/User";
 
 export async function PUT(req, { params }) {
@@ -21,14 +21,46 @@ export async function PUT(req, { params }) {
       );
     }
 
-    const updatedUser = await UserModel.findOneAndUpdate(id, {
-      $set: {
-        username,
-        phone,
-        role,
-        password,
-      },
-    });
+    if (password) {
+      const hashedPassword = await hashPassword(password);
+
+      const updatedUser = await UserModel.findOneAndUpdate(id, {
+        $set: {
+          username,
+          phone,
+          role,
+          hashedPassword,
+        },
+      });
+
+      return Response.json(
+        {
+          message: "کاربر با موفقیت ویرایش شد",
+          data: updatedUser,
+        },
+        {
+          status: 201,
+        }
+      );
+    } else {
+      const updatedUser = await UserModel.findOneAndUpdate(id, {
+        $set: {
+          username,
+          phone,
+          role,
+        },
+      });
+
+      return Response.json(
+        {
+          message: "کاربر با موفقیت ویرایش شد",
+          data: updatedUser,
+        },
+        {
+          status: 201,
+        }
+      );
+    }
   } catch (err) {
     return Response.json(
       {

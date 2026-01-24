@@ -5,8 +5,6 @@ import { FaEye, FaEyeSlash, FaLock } from "react-icons/fa";
 import { FiXCircle } from "react-icons/fi";
 
 function EditUserModal({ isOpen, onClose, user, onSave, loading }) {
-  console.log("FALGA ->", user);
-
   const [formData, setFormData] = useState({
     username: "",
     phone: "",

@@ -109,13 +109,190 @@ export default function UsersManagement() {
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     if (selectedUser) {
-      console.log(selectedUser);
       const user = {
         username: formData.username,
         phone: formData.phone,
         role: formData.role,
-        password: formData.password,
+        password: formData.password ? formData.password : "",
       };
+
+      if (!formData.username || formData.username.length < 3) {
+        Swal.fire({
+          icon: "warning",
+          title: "نام کاربری نامعتبر",
+          text: "نام کاربری باید حداقل ۳ کاراکتر داشته باشد",
+          confirmButtonColor: "#3b82f6",
+        });
+
+        setLoading(false);
+
+        return;
+      }
+
+      if (
+        !formData.phone ||
+        !/^(\+98|0)?9\d{9}$/.test(formData.phone.replace(/\s+/g, ""))
+      ) {
+        Swal.fire({
+          icon: "warning",
+          title: "شماره تلفن نامعتبر",
+          text: "لطفا شماره تلفن معتبر وارد کنید (مانند 09123456789)",
+          confirmButtonColor: "#3b82f6",
+        });
+
+        setLoading(false);
+
+        return;
+      }
+
+      if (user.password) {
+        console.log("عه اومد اینجا");
+        if (formData.password.length < 8) {
+          Swal.fire({
+            icon: "warning",
+            title: "رمز عبور کوتاه",
+            text: "رمز عبور باید حداقل ۸ کاراکتر داشته باشد",
+            confirmButtonColor: "#3b82f6",
+          });
+
+          setLoading(false);
+
+          return;
+        }
+
+        if (
+          !/(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-])/.test(
+            formData.password
+          )
+        ) {
+          Swal.fire({
+            icon: "warning",
+            title: "رمز عبور ضعیف",
+            text: "رمز عبور باید شامل حروف بزرگ، کوچک، عدد و کاراکتر ویژه باشد",
+            confirmButtonColor: "#3b82f6",
+          });
+
+          setLoading(false);
+
+          return;
+        }
+
+        try {
+          const res = await fetch(`/api/users/${selectedUser._id}`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(user),
+          });
+
+          const data = await res.json();
+
+          if (res.ok) {
+            Swal.close();
+
+            Swal.fire({
+              icon: "success",
+              title: "ثبت نام موفق",
+              text: data.message || "حساب کاربری با موفقیت ایجاد شد",
+            });
+
+            const getUsers = async () => {
+              const res = await fetch("/api/users");
+              const data = await res.json();
+
+              setUsers(data.data);
+            };
+
+            getUsers();
+          } else {
+            Swal.fire({
+              icon: "error",
+              title: "خطا در ثبت نام",
+              text: data.message || "خطایی رخ داده است",
+              confirmButtonColor: "#ef4444",
+            });
+
+            setLoading(false);
+          }
+        } catch (error) {
+          console.error("Register error:", error);
+          Swal.fire({
+            icon: "error",
+            title: "خطای ارتباط",
+            text: "خطا در ارتباط با سرور. لطفا دوباره تلاش کنید",
+            confirmButtonColor: "#ef4444",
+          });
+
+          setLoading(false);
+        }
+      } else {
+        try {
+          try {
+            const res = await fetch(`/api/users/${selectedUser._id}`, {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                username: user.username,
+                phone: user.phone,
+                role: user.role,
+              }),
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+              Swal.close();
+
+              Swal.fire({
+                icon: "success",
+                title: "ثبت نام موفق",
+                text: data.message || "حساب کاربری با موفقیت ایجاد شد",
+              });
+
+              const getUsers = async () => {
+                const res = await fetch("/api/users");
+                const data = await res.json();
+
+                setUsers(data.data);
+              };
+
+              getUsers();
+            } else {
+              Swal.fire({
+                icon: "error",
+                title: "خطا در ثبت نام",
+                text: data.message || "خطایی رخ داده است",
+                confirmButtonColor: "#ef4444",
+              });
+
+              setLoading(false);
+            }
+          } catch (error) {
+            console.error("Register error:", error);
+            Swal.fire({
+              icon: "error",
+              title: "خطای ارتباط",
+              text: "خطا در ارتباط با سرور. لطفا دوباره تلاش کنید",
+              confirmButtonColor: "#ef4444",
+            });
+
+            setLoading(false);
+          }
+        } catch (error) {
+          console.error("Register error:", error);
+          Swal.fire({
+            icon: "error",
+            title: "خطای ارتباط",
+            text: "خطا در ارتباط با سرور. لطفا دوباره تلاش کنید",
+            confirmButtonColor: "#ef4444",
+          });
+
+          setLoading(false);
+        }
+      }
     } else {
       const user = {
         username: formData.username,

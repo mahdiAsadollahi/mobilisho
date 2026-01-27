@@ -4,11 +4,11 @@ import { FiUser, FiUserCheck, FiUserX, FiShield } from "react-icons/fi";
 
 function StatsCards({ users }) {
   const getRoleCount = (role) => {
-    return users.filter((user) => user.role === role && !user.isBanned).length;
+    return users.filter((user) => user.role === role && !user.isBan).length;
   };
 
   const getTotalUsersCount = () => {
-    return users.filter((user) => !user.isBanned).length;
+    return users.filter((user) => !user.isBan).length;
   };
 
   const getBannedUsersCount = () => {

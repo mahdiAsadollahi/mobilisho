@@ -68,7 +68,7 @@ export default function UsersManagement() {
   };
 
   const filteredUsers = users.filter((user) => {
-    if (activeTab === "banned" && !user.isBanned) return false;
+    if (activeTab === "banned" && !user.isBan) return false;
     if (
       activeTab !== "all" &&
       activeTab !== "banned" &&
@@ -76,7 +76,7 @@ export default function UsersManagement() {
     ) {
       return false;
     }
-    if (activeTab !== "banned" && user.isBanned) return false;
+    if (activeTab !== "banned" && user.isBan) return false;
 
     if (
       filters.search &&

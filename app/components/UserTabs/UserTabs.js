@@ -4,15 +4,15 @@ import { FiUser, FiUserCheck, FiUserX, FiShield } from "react-icons/fi";
 
 function UserTabs({ activeTab, setActiveTab, users }) {
   const getRoleCount = (role) => {
-    return users.filter((user) => user.role === role && !user.isBanned).length;
+    return users.filter((user) => user.role === role && !user.isBan).length;
   };
 
   const getTotalUsersCount = () => {
-    return users.filter((user) => !user.isBanned).length;
+    return users.filter((user) => !user.isBan).length;
   };
 
   const getBannedUsersCount = () => {
-    return users.filter((user) => user.isBanned).length;
+    return users.filter((user) => user.isBan).length;
   };
 
   return (
@@ -33,9 +33,9 @@ function UserTabs({ activeTab, setActiveTab, users }) {
           </span>
         </button>
         <button
-          onClick={() => setActiveTab("user")}
+          onClick={() => setActiveTab("USER")}
           className={`flex items-center gap-2 px-6 py-4 border-b-2 transition-colors whitespace-nowrap ${
-            activeTab === "user"
+            activeTab === "USER"
               ? "border-blue-500 text-blue-600 bg-blue-50"
               : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50"
           }`}
@@ -43,13 +43,13 @@ function UserTabs({ activeTab, setActiveTab, users }) {
           <FiUserCheck size={18} />
           کاربران عادی
           <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs">
-            {getRoleCount("user")}
+            {getRoleCount("USER")}
           </span>
         </button>
         <button
-          onClick={() => setActiveTab("admin")}
+          onClick={() => setActiveTab("ADMIN")}
           className={`flex items-center gap-2 px-6 py-4 border-b-2 transition-colors whitespace-nowrap ${
-            activeTab === "admin"
+            activeTab === "ADMIN"
               ? "border-blue-500 text-blue-600 bg-blue-50"
               : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50"
           }`}
@@ -57,7 +57,7 @@ function UserTabs({ activeTab, setActiveTab, users }) {
           <FiShield size={18} />
           ادمین‌ها
           <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs">
-            {getRoleCount("admin")}
+            {getRoleCount("ADMIN")}
           </span>
         </button>
         <button

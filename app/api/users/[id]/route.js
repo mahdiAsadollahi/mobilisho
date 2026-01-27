@@ -21,9 +21,6 @@ export async function PUT(req, { params }) {
       );
     }
 
-    console.log("ID ->", id);
-    console.log("PARAMS ->", param);
-
     if (password) {
       const isValidPassword = validatePassword(password);
 

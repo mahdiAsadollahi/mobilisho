@@ -12,7 +12,7 @@ function StatsCards({ users }) {
   };
 
   const getBannedUsersCount = () => {
-    return users.filter((user) => user.isBanned).length;
+    return users.filter((user) => user.isBan).length;
   };
 
   return (
@@ -36,7 +36,7 @@ function StatsCards({ users }) {
           <div>
             <p className="text-sm text-gray-600">کاربران عادی</p>
             <p className="text-2xl font-bold text-green-600">
-              {getRoleCount("user")}
+              {getRoleCount("USER")}
             </p>
           </div>
           <div className="p-3 bg-green-100 rounded-lg">
@@ -50,7 +50,7 @@ function StatsCards({ users }) {
           <div>
             <p className="text-sm text-gray-600">ادمین‌ها</p>
             <p className="text-2xl font-bold text-purple-600">
-              {getRoleCount("admin")}
+              {getRoleCount("ADMIN")}
             </p>
           </div>
           <div className="p-3 bg-purple-100 rounded-lg">

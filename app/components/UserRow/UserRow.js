@@ -19,8 +19,6 @@ function UserRow({
   onDelete,
   onViewDetails,
   onBan,
-  onResetPassword,
-  onRoleChange,
   roleConfig,
   statusConfig,
 }) {
@@ -102,14 +100,6 @@ function UserRow({
             title="ویرایش"
           >
             <FiEdit2 size={16} />
-          </button>
-
-          <button
-            onClick={() => onResetPassword(user)}
-            className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
-            title="ریست پسوورد"
-          >
-            <FiLock size={16} />
           </button>
 
           {!user.isBan ? (

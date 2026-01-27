@@ -488,41 +488,6 @@ export default function UsersManagement() {
     }
   };
 
-  const handleResetPassword = async (user) => {
-    setLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    // در اینجا معمولا ایمیل ریست پسوورد ارسال می‌شود
-    alert(`لینک ریست پسوورد برای کاربر ${user.name} ارسال شد`);
-
-    setLoading(false);
-  };
-
-  const handleRoleChange = async (user, newRole) => {
-    setLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    setUsers(
-      users.map((u) =>
-        u.id === user.id
-          ? {
-              ...u,
-              role: newRole,
-              lastActivity:
-                new Date().toLocaleDateString("fa-IR") +
-                " - " +
-                new Date().toLocaleTimeString("fa-IR", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                }),
-            }
-          : u
-      )
-    );
-
-    setLoading(false);
-  };
-
   const openEditModal = (user) => {
     setSelectedUser(user);
     setShowEditModal(true);
@@ -613,8 +578,6 @@ export default function UsersManagement() {
                   onDelete={openDeleteModal}
                   onViewDetails={openDetailsModal}
                   onBan={handleBanUser}
-                  onResetPassword={handleResetPassword}
-                  onRoleChange={handleRoleChange}
                   roleConfig={roleConfig}
                   statusConfig={statusConfig}
                 />

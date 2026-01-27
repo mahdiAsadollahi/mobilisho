@@ -105,18 +105,6 @@ function UserRow({
             <FiEdit2 size={16} />
           </button>
 
-          {user.role !== "admin" && (
-            <select
-              value={user.role}
-              onChange={(e) => onRoleChange(user, e.target.value)}
-              className="p-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
-              title="تغییر نقش"
-            >
-              <option value="USER">کاربر</option>
-              <option value="ADMIN">ادمین</option>
-            </select>
-          )}
-
           <button
             onClick={() => onResetPassword(user)}
             className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"

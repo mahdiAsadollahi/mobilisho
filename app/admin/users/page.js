@@ -10,6 +10,7 @@ import EditUserModal from "@/app/components/EditUserModal/EditUserModal";
 import UserDetailsModal from "@/app/components/UserDetailsModal/UserDetailsModal";
 import DeleteModal from "@/app/components/DeleteModal/DeleteModal";
 import Swal from "sweetalert2";
+import toast from "react-hot-toast";
 
 export default function UsersManagement() {
   const [activeTab, setActiveTab] = useState("all");
@@ -417,14 +418,78 @@ export default function UsersManagement() {
   };
 
   const handleDelete = async () => {
-    setLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    console.log("SELECTED ->", selectedUser);
 
-    setUsers(users.filter((user) => user.id !== selectedUser.id));
+    try {
+      if (!selectedUser?._id) {
+        toast.error("کاربری انتخاب نشده است");
+        return;
+      }
 
-    setLoading(false);
-    setShowDeleteModal(false);
-    setSelectedUser(null);
+      const response = await fetch(`/api/users/${selectedUser._id}/delete`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "خطا در حذف کاربر");
+      }
+
+      await Swal.fire({
+        title: "✅ حذف موفق!",
+        html: `
+          <div style="text-align: center;">
+            <p style="font-size: 18px; margin-bottom: 20px;">کاربر با موفقیت حذف شد</p>
+            <div style="background: #f0fff0; padding: 15px; border-radius: 8px; margin: 10px 0;">
+              <p style="margin: 5px 0;"><strong>نام کاربری:</strong> ${
+                selectedUser.username
+              }</p>
+              <p style="margin: 5px 0;"><strong>شماره:</strong> ${
+                selectedUser.phone
+              }</p>
+              <p style="margin: 5px 0;"><strong>زمان حذف:</strong> ${new Date().toLocaleTimeString(
+                "fa-IR"
+              )}</p>
+            </div>
+          </div>
+        `,
+        icon: "success",
+        confirmButtonText: "متوجه شدم",
+        confirmButtonColor: "#4CAF50",
+      });
+
+      const getUsers = async () => {
+        const res = await fetch("/api/users");
+        const data = await res.json();
+
+        setUsers(data.data);
+      };
+
+      getUsers();
+
+      setShowDeleteModal(false);
+    } catch (error) {
+      console.error("خطا در حذف کاربر:", error);
+
+      await Swal.fire({
+        title: "❌ خطا!",
+        html: `
+          <div style="text-align: center;">
+            <p style="color: #d33; margin-bottom: 15px;">حذف کاربر انجام نشد</p>
+            <p style="color: #666; font-size: 14px;">${
+              error.message || "خطای نامشخص"
+            }</p>
+          </div>
+        `,
+        icon: "error",
+        confirmButtonText: "بستن",
+        confirmButtonColor: "#d33",
+      });
+    }
   };
 
   const handleBanUser = async (user) => {

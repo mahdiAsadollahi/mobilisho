@@ -475,8 +475,16 @@ export default function UsersManagement() {
         showConfirmButton: false,
       });
 
-      // آپدیت UI
-      // ... کد آپدیت state
+      const getUsers = async () => {
+        const res = await fetch("/api/users");
+        const data = await res.json();
+
+        setUsers(data.data);
+      };
+
+      getUsers();
+
+      setSelectedUser(null);
     } catch (error) {
       Swal.fire({
         icon: "error",
@@ -622,7 +630,7 @@ export default function UsersManagement() {
         }}
         onConfirm={handleDelete}
         title="حذف کاربر"
-        message={`آیا از حذف کاربر "${selectedUser?.name}" اطمینان دارید؟ این عمل غیرقابل بازگشت است.`}
+        message={`آیا از حذف کاربر "${selectedUser?.username}" اطمینان دارید؟ این عمل غیرقابل بازگشت است.`}
         loading={loading}
       />
     </div>

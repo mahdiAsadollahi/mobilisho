@@ -19,7 +19,6 @@ function UserRow({
   onDelete,
   onViewDetails,
   onBan,
-  onUnban,
   onResetPassword,
   onRoleChange,
   roleConfig,
@@ -123,7 +122,7 @@ function UserRow({
             </button>
           ) : (
             <button
-              onClick={() => onUnban(user)}
+              onClick={() => onBan(user)}
               className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
               title="رفع مسدودیت"
             >

@@ -36,7 +36,7 @@ export async function PUT(req, { params }) {
 
     return Response.json(
       {
-        message: `کاربر ${newBanStatus ? "بن" : "آنبن"} شد`,
+        message: `کاربر ${newBanStatus ? "مسدود" : "رفع مسدودیت"} شد`,
         data: updatedUser,
         action: newBanStatus ? "banned" : "unbanned",
       },

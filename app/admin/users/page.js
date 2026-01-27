@@ -429,52 +429,63 @@ export default function UsersManagement() {
 
   const handleBanUser = async (user) => {
     setLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 500));
 
-    setUsers(
-      users.map((u) =>
-        u.id === user.id
-          ? {
-              ...u,
-              isBanned: true,
-              lastActivity:
-                new Date().toLocaleDateString("fa-IR") +
-                " - " +
-                new Date().toLocaleTimeString("fa-IR", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                }),
-            }
-          : u
-      )
-    );
+    try {
+      const isCurrentlyBanned = user.isBan;
+      const actionText = isCurrentlyBanned ? "رفع مسدودیت" : "مسدود کردن";
 
-    setLoading(false);
-  };
+      // تاییدیه ساده
+      const result = await Swal.fire({
+        title: `${actionText} کاربر`,
+        text: `آیا از ${actionText} کاربر "${user.username}" مطمئن هستید؟`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: `بله، ${actionText} کن`,
+        cancelButtonText: "خیر، لغو",
+        confirmButtonColor: isCurrentlyBanned ? "#4CAF50" : "#f44336",
+        cancelButtonColor: "#6c757d",
+        reverseButtons: true,
+      });
 
-  const handleUnbanUser = async (user) => {
-    setLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 500));
+      if (!result.isConfirmed) {
+        setLoading(false);
+        return;
+      }
 
-    setUsers(
-      users.map((u) =>
-        u.id === user.id
-          ? {
-              ...u,
-              isBanned: false,
-              lastActivity:
-                new Date().toLocaleDateString("fa-IR") +
-                " - " +
-                new Date().toLocaleTimeString("fa-IR", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                }),
-            }
-          : u
-      )
-    );
+      // ارسال درخواست
+      const response = await fetch(`/api/users/${user._id}/ban`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
-    setLoading(false);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message);
+      }
+
+      // موفقیت
+      Swal.fire({
+        icon: "success",
+        title: "انجام شد!",
+        text: data.message,
+        timer: 1500,
+        showConfirmButton: false,
+      });
+
+      // آپدیت UI
+      // ... کد آپدیت state
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "خطا",
+        text: error.message,
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleResetPassword = async (user) => {
@@ -602,7 +613,6 @@ export default function UsersManagement() {
                   onDelete={openDeleteModal}
                   onViewDetails={openDetailsModal}
                   onBan={handleBanUser}
-                  onUnban={handleUnbanUser}
                   onResetPassword={handleResetPassword}
                   onRoleChange={handleRoleChange}
                   roleConfig={roleConfig}

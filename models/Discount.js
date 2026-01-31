@@ -8,6 +8,7 @@ const schema = new mongoose.Schema(
       required: true,
       unique: true,
       trim: true,
+      uppercase: true,
     },
     discountType: {
       type: String,
@@ -30,7 +31,7 @@ const schema = new mongoose.Schema(
     },
     value: {
       type: Number,
-      requried: true,
+      required: true,
       min: 0,
     },
     max_usage: {

@@ -12,37 +12,19 @@ import {
 } from "react-icons/fi";
 import JalaliDatePicker from "@/app/components/JalaliDatePicker/JalaliDatePicker";
 
-// داده‌های فیک برای نمایش
-const fakeCustomers = [
-  { id: 1, name: "محمد احمدی", email: "m.ahmadi@example.com" },
-  { id: 2, name: "فاطمه محمدی", email: "f.mohammadi@example.com" },
-  { id: 3, name: "علی رضایی", email: "a.rezaei@example.com" },
-  { id: 4, name: "زهرا کریمی", email: "z.karimi@example.com" },
-  { id: 5, name: "حسین نجفی", email: "h.najafi@example.com" },
-];
-
-const fakeProducts = [
-  { id: 1, name: "گوشی موبایل سامسونگ", sku: "SM-A123" },
-  { id: 2, name: "لپ تاپ ایسوس", sku: "AS-X456" },
-  { id: 3, name: "هدفون سونی", sku: "SN-W789" },
-  { id: 4, name: "ماوس لاجیتک", sku: "LG-M321" },
-  { id: 5, name: "کیبورد مکانیکال", sku: "MK-C654" },
-];
-
 const DiscountModal = ({ isOpen, onClose, onSave, discount, loading }) => {
   const [formData, setFormData] = useState({
     code: "",
     description: "",
-    type: "general",
-    discountType: "percentage",
+    discountType: "public",
+    value_type: "percentage",
     value: "",
-    maxUsage: "",
-    usedCount: 0,
-    minOrderAmount: "",
-    expiresAt: "",
+    max_usage: "",
+    min_order_amount: "",
+    expiry_date: "",
     status: "active",
-    targetCustomers: [],
-    targetProducts: [],
+    specific_products: [],
+    specific_customers: [],
   });
 
   const [customerSearch, setCustomerSearch] = useState("");
@@ -50,45 +32,98 @@ const DiscountModal = ({ isOpen, onClose, onSave, discount, loading }) => {
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
   const [showProductDropdown, setShowProductDropdown] = useState(false);
 
+  const [customers, setCustomers] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [fetchingCustomers, setFetchingCustomers] = useState(false);
+  const [fetchingProducts, setFetchingProducts] = useState(false);
+
   useEffect(() => {
     if (discount) {
       setFormData({
-        ...discount,
-        expiresAt: discount.expiresAt || "",
-        targetCustomers: discount.targetCustomers || [],
-        targetProducts: discount.targetProducts || [],
+        code: discount.code || "",
+        description: discount.description || "",
+        discountType: discount.discountType || "public",
+        value_type: discount.value_type || "percentage",
+        value: discount.value || "",
+        max_usage: discount.max_usage || "",
+        min_order_amount: discount.min_order_amount || "",
+        expiry_date: discount.expiry_date || "",
+        status: discount.status || "active",
+        specific_products: discount.specific_products || [],
+        specific_customers: discount.specific_customers || [],
       });
     } else {
       setFormData({
         code: "",
         description: "",
-        type: "general",
-        discountType: "percentage",
+        discountType: "public",
+        value_type: "percentage",
         value: "",
-        maxUsage: "",
-        usedCount: 0,
-        minOrderAmount: "",
-        expiresAt: "",
+        max_usage: "",
+        min_order_amount: "",
+        expiry_date: "",
         status: "active",
-        targetCustomers: [],
-        targetProducts: [],
+        specific_products: [],
+        specific_customers: [],
       });
     }
   }, [discount]);
 
-  const filteredCustomers = fakeCustomers.filter(
+  useEffect(() => {
+    if (showCustomerDropdown && customers.length === 0) {
+      fetchCustomers();
+    }
+  }, [showCustomerDropdown]);
+
+  useEffect(() => {
+    if (showProductDropdown && products.length === 0) {
+      fetchProducts();
+    }
+  }, [showProductDropdown]);
+
+  const fetchCustomers = async () => {
+    try {
+      setFetchingCustomers(true);
+      const response = await fetch("/api/discounts/users");
+      const data = await response.json();
+      if (data.data) {
+        setCustomers(data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching customers:", error);
+    } finally {
+      setFetchingCustomers(false);
+    }
+  };
+
+  const fetchProducts = async () => {
+    try {
+      setFetchingProducts(true);
+      const response = await fetch("/api/discounts/products");
+      const data = await response.json();
+      if (data.data) {
+        setProducts(data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    } finally {
+      setFetchingProducts(false);
+    }
+  };
+
+  const filteredCustomers = customers.filter(
     (customer) =>
-      customer.name.includes(customerSearch) ||
-      customer.email.includes(customerSearch)
+      customer.username?.toLowerCase().includes(customerSearch.toLowerCase()) ||
+      customer._id?.toLowerCase().includes(customerSearch.toLowerCase())
   );
 
-  const filteredProducts = fakeProducts.filter(
+  const filteredProducts = products.filter(
     (product) =>
-      product.name.includes(productSearch) ||
-      product.sku.includes(productSearch)
+      product.name?.toLowerCase().includes(productSearch.toLowerCase()) ||
+      product._id?.toLowerCase().includes(productSearch.toLowerCase())
   );
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!formData.code.trim()) {
@@ -100,7 +135,29 @@ const DiscountModal = ({ isOpen, onClose, onSave, discount, loading }) => {
       return;
     }
 
-    onSave(formData);
+    try {
+      // ارسال به API
+      const response = await fetch("/api/discounts", {
+        method: discount ? "PUT" : "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(
+          discount ? { id: discount._id, ...formData } : formData
+        ),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        onSave(formData);
+      } else {
+        alert(result.message || "خطا در ذخیره تخفیف");
+      }
+    } catch (error) {
+      console.error("Error saving discount:", error);
+      alert("خطا در ارتباط با سرور");
+    }
   };
 
   const handleChange = (field, value) => {
@@ -110,9 +167,13 @@ const DiscountModal = ({ isOpen, onClose, onSave, discount, loading }) => {
     }));
   };
 
+  // اضافه کردن مشتری
   const addCustomer = (customer) => {
-    if (!formData.targetCustomers.find((c) => c.id === customer.id)) {
-      handleChange("targetCustomers", [...formData.targetCustomers, customer]);
+    if (!formData.specific_customers.find((c) => c._id === customer._id)) {
+      handleChange("specific_customers", [
+        ...formData.specific_customers,
+        { _id: customer._id, username: customer.username },
+      ]);
     }
     setCustomerSearch("");
     setShowCustomerDropdown(false);
@@ -120,14 +181,17 @@ const DiscountModal = ({ isOpen, onClose, onSave, discount, loading }) => {
 
   const removeCustomer = (customerId) => {
     handleChange(
-      "targetCustomers",
-      formData.targetCustomers.filter((c) => c.id !== customerId)
+      "specific_customers",
+      formData.specific_customers.filter((c) => c._id !== customerId)
     );
   };
 
   const addProduct = (product) => {
-    if (!formData.targetProducts.find((p) => p.id === product.id)) {
-      handleChange("targetProducts", [...formData.targetProducts, product]);
+    if (!formData.specific_products.find((p) => p._id === product._id)) {
+      handleChange("specific_products", [
+        ...formData.specific_products,
+        { _id: product._id, name: product.name },
+      ]);
     }
     setProductSearch("");
     setShowProductDropdown(false);
@@ -135,8 +199,8 @@ const DiscountModal = ({ isOpen, onClose, onSave, discount, loading }) => {
 
   const removeProduct = (productId) => {
     handleChange(
-      "targetProducts",
-      formData.targetProducts.filter((p) => p.id !== productId)
+      "specific_products",
+      formData.specific_products.filter((p) => p._id !== productId)
     );
   };
 
@@ -146,7 +210,6 @@ const DiscountModal = ({ isOpen, onClose, onSave, discount, loading }) => {
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
         <div className="p-6">
-          {/* هدر */}
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-bold text-gray-800">
               {discount ? "ویرایش کد تخفیف" : "ایجاد کد تخفیف جدید"}
@@ -172,7 +235,9 @@ const DiscountModal = ({ isOpen, onClose, onSave, discount, loading }) => {
                   type="text"
                   required
                   value={formData.code}
-                  onChange={(e) => handleChange("code", e.target.value)}
+                  onChange={(e) =>
+                    handleChange("code", e.target.value.toUpperCase())
+                  }
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="مثال: SUMMER20"
                   disabled={loading}
@@ -184,16 +249,15 @@ const DiscountModal = ({ isOpen, onClose, onSave, discount, loading }) => {
                   نوع تخفیف *
                 </label>
                 <select
-                  value={formData.type}
-                  onChange={(e) => handleChange("type", e.target.value)}
+                  value={formData.discountType}
+                  onChange={(e) => handleChange("discountType", e.target.value)}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   disabled={loading}
                 >
-                  <option value="general">عمومی</option>
-                  <option value="product">محصول خاص</option>
-                  <option value="customer">مشتری خاص</option>
-                  <option value="event">رویداد</option>
-                  <option value="first_order">اولین خرید</option>
+                  <option value="public">عمومی</option>
+                  <option value="specific_product">محصول خاص</option>
+                  <option value="specific_customer">مشتری خاص</option>
+                  <option value="first_purchase">اولین خرید</option>
                 </select>
               </div>
             </div>
@@ -222,10 +286,10 @@ const DiscountModal = ({ isOpen, onClose, onSave, discount, loading }) => {
                 <div className="flex gap-2">
                   <button
                     type="button"
-                    onClick={() => handleChange("discountType", "percentage")}
+                    onClick={() => handleChange("value_type", "percentage")}
                     disabled={loading}
                     className={`flex items-center justify-center gap-2 flex-1 p-3 border-2 rounded-lg transition-all ${
-                      formData.discountType === "percentage"
+                      formData.value_type === "percentage"
                         ? "border-blue-500 bg-blue-50 text-blue-700 shadow-sm"
                         : "border-gray-300 text-gray-600 hover:border-gray-400 hover:bg-gray-50"
                     } ${
@@ -239,10 +303,10 @@ const DiscountModal = ({ isOpen, onClose, onSave, discount, loading }) => {
                   </button>
                   <button
                     type="button"
-                    onClick={() => handleChange("discountType", "fixed")}
+                    onClick={() => handleChange("value_type", "fixed")}
                     disabled={loading}
                     className={`flex items-center justify-center gap-2 flex-1 p-3 border-2 rounded-lg transition-all ${
-                      formData.discountType === "fixed"
+                      formData.value_type === "fixed"
                         ? "border-blue-500 bg-blue-50 text-blue-700 shadow-sm"
                         : "border-gray-300 text-gray-600 hover:border-gray-400 hover:bg-gray-50"
                     } ${
@@ -265,14 +329,12 @@ const DiscountModal = ({ isOpen, onClose, onSave, discount, loading }) => {
                   type="number"
                   required
                   min="0"
-                  max={
-                    formData.discountType === "percentage" ? "100" : undefined
-                  }
+                  max={formData.value_type === "percentage" ? "100" : undefined}
                   value={formData.value}
                   onChange={(e) => handleChange("value", e.target.value)}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder={
-                    formData.discountType === "percentage" ? "20" : "50000"
+                    formData.value_type === "percentage" ? "20" : "50000"
                   }
                   disabled={loading}
                 />
@@ -285,8 +347,8 @@ const DiscountModal = ({ isOpen, onClose, onSave, discount, loading }) => {
                 <input
                   type="number"
                   min="0"
-                  value={formData.maxUsage}
-                  onChange={(e) => handleChange("maxUsage", e.target.value)}
+                  value={formData.max_usage}
+                  onChange={(e) => handleChange("max_usage", e.target.value)}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="نامحدود"
                   disabled={loading}
@@ -303,9 +365,9 @@ const DiscountModal = ({ isOpen, onClose, onSave, discount, loading }) => {
                 <input
                   type="number"
                   min="0"
-                  value={formData.minOrderAmount}
+                  value={formData.min_order_amount}
                   onChange={(e) =>
-                    handleChange("minOrderAmount", e.target.value)
+                    handleChange("min_order_amount", e.target.value)
                   }
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="بدون محدودیت"
@@ -318,8 +380,8 @@ const DiscountModal = ({ isOpen, onClose, onSave, discount, loading }) => {
                   تاریخ انقضا
                 </label>
                 <JalaliDatePicker
-                  value={formData.expiresAt}
-                  onChange={(date) => handleChange("expiresAt", date)}
+                  value={formData.expiry_date}
+                  onChange={(date) => handleChange("expiry_date", date)}
                   placeholder="انتخاب تاریخ"
                   outputFormat="jalali"
                 />
@@ -342,7 +404,7 @@ const DiscountModal = ({ isOpen, onClose, onSave, discount, loading }) => {
             </div>
 
             {/* انتخاب مشتریان خاص */}
-            {formData.type === "customer" && (
+            {formData.discountType === "specific_customer" && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   مشتریان هدف
@@ -375,33 +437,45 @@ const DiscountModal = ({ isOpen, onClose, onSave, discount, loading }) => {
 
                     {showCustomerDropdown && (
                       <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
-                        {filteredCustomers.map((customer) => (
-                          <div
-                            key={customer.id}
-                            onClick={() => addCustomer(customer)}
-                            className="p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
-                          >
-                            <div className="font-medium">{customer.name}</div>
-                            <div className="text-sm text-gray-500">
-                              {customer.email}
-                            </div>
+                        {fetchingCustomers ? (
+                          <div className="p-3 text-center text-gray-500">
+                            در حال دریافت لیست کاربران...
                           </div>
-                        ))}
+                        ) : filteredCustomers.length === 0 ? (
+                          <div className="p-3 text-center text-gray-500">
+                            کاربری یافت نشد
+                          </div>
+                        ) : (
+                          filteredCustomers.map((customer) => (
+                            <div
+                              key={customer._id}
+                              onClick={() => addCustomer(customer)}
+                              className="p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                            >
+                              <div className="font-medium">
+                                {customer.username}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                ID: {customer._id}
+                              </div>
+                            </div>
+                          ))
+                        )}
                       </div>
                     )}
                   </div>
 
                   {/* لیست مشتریان انتخاب شده */}
                   <div className="flex flex-wrap gap-2">
-                    {formData.targetCustomers.map((customer) => (
+                    {formData.specific_customers.map((customer) => (
                       <div
-                        key={customer.id}
+                        key={customer._id}
                         className="flex items-center gap-2 bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm"
                       >
-                        <span>{customer.name}</span>
+                        <span>{customer.username}</span>
                         <button
                           type="button"
-                          onClick={() => removeCustomer(customer.id)}
+                          onClick={() => removeCustomer(customer._id)}
                           className="hover:text-blue-600"
                         >
                           <FiX size={14} />
@@ -414,7 +488,7 @@ const DiscountModal = ({ isOpen, onClose, onSave, discount, loading }) => {
             )}
 
             {/* انتخاب محصولات خاص */}
-            {formData.type === "product" && (
+            {formData.discountType === "specific_product" && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   محصولات هدف
@@ -447,33 +521,43 @@ const DiscountModal = ({ isOpen, onClose, onSave, discount, loading }) => {
 
                     {showProductDropdown && (
                       <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
-                        {filteredProducts.map((product) => (
-                          <div
-                            key={product.id}
-                            onClick={() => addProduct(product)}
-                            className="p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
-                          >
-                            <div className="font-medium">{product.name}</div>
-                            <div className="text-sm text-gray-500">
-                              SKU: {product.sku}
-                            </div>
+                        {fetchingProducts ? (
+                          <div className="p-3 text-center text-gray-500">
+                            در حال دریافت لیست محصولات...
                           </div>
-                        ))}
+                        ) : filteredProducts.length === 0 ? (
+                          <div className="p-3 text-center text-gray-500">
+                            محصولی یافت نشد
+                          </div>
+                        ) : (
+                          filteredProducts.map((product) => (
+                            <div
+                              key={product._id}
+                              onClick={() => addProduct(product)}
+                              className="p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                            >
+                              <div className="font-medium">{product.name}</div>
+                              <div className="text-sm text-gray-500">
+                                ID: {product._id}
+                              </div>
+                            </div>
+                          ))
+                        )}
                       </div>
                     )}
                   </div>
 
                   {/* لیست محصولات انتخاب شده */}
                   <div className="flex flex-wrap gap-2">
-                    {formData.targetProducts.map((product) => (
+                    {formData.specific_products.map((product) => (
                       <div
-                        key={product.id}
+                        key={product._id}
                         className="flex items-center gap-2 bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm"
                       >
                         <span>{product.name}</span>
                         <button
                           type="button"
-                          onClick={() => removeProduct(product.id)}
+                          onClick={() => removeProduct(product._id)}
                           className="hover:text-green-600"
                         >
                           <FiX size={14} />

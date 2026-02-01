@@ -612,7 +612,11 @@ export default function DiscountsManagement() {
           setShowDiscountModal(false);
           setSelectedItem(null);
         }}
-        onSave={handleSaveDiscount}
+        onSave={(formData) => {
+          alert("تخفیف با موفقیت ذخیره شد");
+          setShowDiscountModal(false);
+          setSelectedItem(null);
+        }}
         discount={selectedItem}
         loading={loading}
       />

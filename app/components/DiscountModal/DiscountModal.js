@@ -11,6 +11,7 @@ import {
   FiPackage,
 } from "react-icons/fi";
 import JalaliDatePicker from "@/app/components/JalaliDatePicker/JalaliDatePicker";
+import Swal from "sweetalert2";
 
 const DiscountModal = ({ isOpen, onClose, onSave, discount, loading }) => {
   const [formData, setFormData] = useState({
@@ -127,18 +128,23 @@ const DiscountModal = ({ isOpen, onClose, onSave, discount, loading }) => {
     e.preventDefault();
 
     if (!formData.code.trim()) {
-      alert("لطفا کد تخفیف را وارد کنید");
+      Swal.fire({
+        title: "لطفا کد تخفیف را وارد کنید",
+        icon: "error",
+      });
       return;
     }
     if (!formData.value || Number(formData.value) <= 0) {
-      alert("لطفا مقدار تخفیف را وارد کنید");
+      Swal.fire({
+        title: "لطفا مقدار تخفیف را وارد کنید",
+        icon: "error",
+      });
       return;
     }
 
     try {
       console.log("FLAG DISCOUNT ->", formData);
 
-      // ارسال به API
       const response = await fetch("/api/discounts", {
         method: discount ? "PUT" : "POST",
         headers: {
@@ -154,11 +160,17 @@ const DiscountModal = ({ isOpen, onClose, onSave, discount, loading }) => {
       if (response.ok) {
         onSave(formData);
       } else {
-        alert(result.message || "خطا در ذخیره تخفیف");
+        Swal.fire({
+          title: "خطا در ذخیره تخفیف",
+          icon: "error",
+        });
       }
     } catch (error) {
       console.error("Error saving discount:", error);
-      alert("خطا در ارتباط با سرور");
+      Swal.fire({
+        title: "خطا در ارتباط با سرور",
+        icon: "error",
+      });
     }
   };
 

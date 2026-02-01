@@ -35,6 +35,17 @@ export default function DiscountsManagement() {
 
   const [campaigns, setCampaigns] = useState([]);
 
+  const fetchData = async () => {
+    const res = await fetch("/api/discounts");
+    const data = await res.json();
+
+    setDiscounts(data.data);
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
   const filteredDiscounts = discounts.filter((discount) => {
     if (
       filters.search &&
@@ -184,13 +195,21 @@ export default function DiscountsManagement() {
 
   const getTypeBadge = (type) => {
     const typeConfig = {
-      general: { color: "bg-blue-100 text-blue-800", text: "عمومی" },
-      product: { color: "bg-purple-100 text-purple-800", text: "محصول خاص" },
-      customer: { color: "bg-green-100 text-green-800", text: "مشتری خاص" },
-      event: { color: "bg-orange-100 text-orange-800", text: "رویداد" },
-      first_order: { color: "bg-pink-100 text-pink-800", text: "اولین خرید" },
+      public: { color: "bg-blue-600 text-white", text: "عمومی" },
+      specific_product: {
+        color: "bg-purple-600 text-white",
+        text: "محصول خاص",
+      },
+      specific_customer: {
+        color: "bg-green-600 text-white",
+        text: "مشتری خاص",
+      },
+      first_purchase: {
+        color: "bg-pink-600 text-white",
+        text: "اولین خرید",
+      },
     };
-    const config = typeConfig[type] || typeConfig.general;
+    const config = typeConfig[type] || typeConfig.public;
     return (
       <span
         className={`px-2 py-1 rounded-full text-xs font-medium ${config.color}`}
@@ -369,7 +388,7 @@ export default function DiscountsManagement() {
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {filteredDiscounts.map((discount) => (
-                  <tr key={discount.id} className="hover:bg-gray-50">
+                  <tr key={discount._id} className="hover:bg-gray-50">
                     <td className="px-4 py-4">
                       <div className="font-medium text-gray-900">
                         {discount.code}
@@ -380,10 +399,12 @@ export default function DiscountsManagement() {
                         {discount.description}
                       </div>
                     </td>
-                    <td className="px-4 py-4">{getTypeBadge(discount.type)}</td>
+                    <td className="px-4 py-4">
+                      {getTypeBadge(discount.discountType)}
+                    </td>
                     <td className="px-4 py-4">
                       <div className="text-sm font-medium text-gray-900">
-                        {discount.discountType === "percentage"
+                        {discount.value_type === "percentage"
                           ? `${discount.value}%`
                           : `${discount.value.toLocaleString()} تومان`}
                       </div>
@@ -393,7 +414,7 @@ export default function DiscountsManagement() {
                     </td>
                     <td className="px-4 py-4">
                       <div className="text-sm text-gray-600">
-                        {discount.expiresAt}
+                        {discount.expiry_date}
                       </div>
                     </td>
                     <td className="px-4 py-4">
@@ -469,7 +490,7 @@ export default function DiscountsManagement() {
                     </td>
                     <td className="px-4 py-4">
                       <div className="text-sm font-medium text-gray-900">
-                        {campaign.discountType === "percentage"
+                        {campaign.value_type === "percentage"
                           ? `${campaign.discountValue}%`
                           : `${campaign.discountValue.toLocaleString()} تومان`}
                       </div>

@@ -14,6 +14,7 @@ import {
 import DiscountModal from "@/app/components/DiscountModal/DiscountModal";
 import CampaignModal from "@/app/components/CampaignModal/CampaignModal";
 import DeleteModal from "@/app/components/DeleteModal/DeleteModal";
+import Swal from "sweetalert2";
 
 export default function DiscountsManagement() {
   const [activeTab, setActiveTab] = useState("discounts");
@@ -613,7 +614,10 @@ export default function DiscountsManagement() {
           setSelectedItem(null);
         }}
         onSave={(formData) => {
-          alert("تخفیف با موفقیت ذخیره شد");
+          Swal.fire({
+            title: "تخفیف با موفقیت ذخیره شد",
+            icom: "success",
+          });
           setShowDiscountModal(false);
           setSelectedItem(null);
         }}

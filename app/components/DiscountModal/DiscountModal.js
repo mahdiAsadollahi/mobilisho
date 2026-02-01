@@ -158,11 +158,34 @@ const DiscountModal = ({ isOpen, onClose, onSave, discount, loading }) => {
       const result = await response.json();
 
       if (response.ok) {
-        onSave(formData);
-      } else {
         Swal.fire({
-          title: "خطا در ذخیره تخفیف",
-          icon: "error",
+          title: discount ? "ویرایش موفق" : "ایجاد موفق",
+          text: discount ? "تخفیف با موفقیت ویرایش شد" : "تخفیف جدید ایجاد شد",
+          icon: "success",
+          timer: 1500,
+          showConfirmButton: false,
+        }).then(() => {
+          // فراخوانی onSave برای اطلاع به والد
+          onSave(result.data);
+
+          // اگر در حال ایجاد تخفیف جدید بودیم، فرم را ریست کن
+          if (!discount) {
+            setFormData({
+              code: "",
+              description: "",
+              discountType: "public",
+              value_type: "percentage",
+              value: "",
+              max_usage: "",
+              min_order_amount: "",
+              expiry_date: "",
+              status: "active",
+              specific_products: [],
+              specific_customers: [],
+            });
+          }
+
+          onClose();
         });
       }
     } catch (error) {

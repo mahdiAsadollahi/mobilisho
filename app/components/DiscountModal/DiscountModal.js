@@ -165,10 +165,8 @@ const DiscountModal = ({ isOpen, onClose, onSave, discount, loading }) => {
           timer: 1500,
           showConfirmButton: false,
         }).then(() => {
-          // فراخوانی onSave برای اطلاع به والد
           onSave(result.data);
 
-          // اگر در حال ایجاد تخفیف جدید بودیم، فرم را ریست کن
           if (!discount) {
             setFormData({
               code: "",

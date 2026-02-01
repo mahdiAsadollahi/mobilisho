@@ -136,6 +136,8 @@ const DiscountModal = ({ isOpen, onClose, onSave, discount, loading }) => {
     }
 
     try {
+      console.log("FLAG DISCOUNT ->", formData);
+
       // ارسال به API
       const response = await fetch("/api/discounts", {
         method: discount ? "PUT" : "POST",
@@ -383,7 +385,7 @@ const DiscountModal = ({ isOpen, onClose, onSave, discount, loading }) => {
                   value={formData.expiry_date}
                   onChange={(date) => handleChange("expiry_date", date)}
                   placeholder="انتخاب تاریخ"
-                  outputFormat="jalali"
+                  outputFormat="gregorian"
                 />
               </div>
 

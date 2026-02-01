@@ -87,9 +87,11 @@ export async function POST(req, res) {
 
 export async function GET(req) {
   try {
-    await connnectToDB();
+    await connectToDB();
 
-    const discounts = await DiscountModel.find();
+    const discounts = await DiscountModel.find()
+      .populate("specific_customers", "_id username")
+      .populate("specific_products", "_id name");
 
     return Response.json(
       {

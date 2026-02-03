@@ -1,5 +1,7 @@
 import connectToDB from "@/configs/db";
 import DiscountModel from "@/models/Discount";
+import UserModel from "@/models/User";
+import ProductModel from "@/models/Product";
 
 export async function POST(req, res) {
   try {

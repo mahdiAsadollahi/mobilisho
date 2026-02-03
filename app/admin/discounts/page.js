@@ -152,8 +152,10 @@ export default function DiscountsManagement() {
     setShowDeleteModal(true);
   };
 
-  const handleDelete = async (item) => {
+  const handleDelete = async () => {
     try {
+      const item = selectedItem;
+
       setLoading(true);
 
       const result = await Swal.fire({
@@ -362,11 +364,10 @@ export default function DiscountsManagement() {
               className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="">همه انواع</option>
-              <option value="general">عمومی</option>
-              <option value="product">محصول خاص</option>
-              <option value="customer">مشتری خاص</option>
-              <option value="event">رویداد</option>
-              <option value="first_order">اولین خرید</option>
+              <option value="public">عمومی</option>
+              <option value="specific_product">محصول خاص</option>
+              <option value="specific_customer">مشتری خاص</option>
+              <option value="first_purchase">اولین خرید</option>
             </select>
           ) : (
             <select

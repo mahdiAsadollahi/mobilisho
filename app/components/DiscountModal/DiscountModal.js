@@ -124,9 +124,11 @@ const DiscountModal = ({ isOpen, onClose, onSave, discount, loading }) => {
       product._id?.toLowerCase().includes(productSearch.toLowerCase())
   );
 
+  // 🔴 تغییر در تابع handleSubmit (قسمت ارسال درخواست):
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // اعتبارسنجی فیلدها
     if (!formData.code.trim()) {
       Swal.fire({
         title: "لطفا کد تخفیف را وارد کنید",
@@ -143,16 +145,18 @@ const DiscountModal = ({ isOpen, onClose, onSave, discount, loading }) => {
     }
 
     try {
-      console.log("FLAG DISCOUNT ->", formData);
+      const url = discount
+        ? `/api/discounts/${discount._id}`
+        : "/api/discounts";
 
-      const response = await fetch("/api/discounts", {
-        method: discount ? "PUT" : "POST",
+      const method = discount ? "PUT" : "POST";
+
+      const response = await fetch(url, {
+        method: method,
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(
-          discount ? { id: discount._id, ...formData } : formData
-        ),
+        body: JSON.stringify(formData),
       });
 
       const result = await response.json();
@@ -184,6 +188,12 @@ const DiscountModal = ({ isOpen, onClose, onSave, discount, loading }) => {
           }
 
           onClose();
+        });
+      } else {
+        Swal.fire({
+          title: "خطا",
+          text: result.message || "خطایی رخ داده است",
+          icon: "error",
         });
       }
     } catch (error) {

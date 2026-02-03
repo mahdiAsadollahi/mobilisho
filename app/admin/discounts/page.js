@@ -152,19 +152,54 @@ export default function DiscountsManagement() {
     setShowDeleteModal(true);
   };
 
-  const handleDelete = async () => {
-    setLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+  const handleDelete = async (item) => {
+    try {
+      setLoading(true);
 
-    if (activeTab === "discounts") {
-      setDiscounts(discounts.filter((item) => item.id !== selectedItem.id));
-    } else {
-      setCampaigns(campaigns.filter((item) => item.id !== selectedItem.id));
+      const result = await Swal.fire({
+        title: "آیا مطمئن هستید؟",
+        text: `کد تخفیف "${item.code}" حذف خواهد شد`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "بله، حذف کن",
+        cancelButtonText: "لغو",
+      });
+
+      if (result.isConfirmed) {
+        const response = await fetch(`/api/discounts/${item._id}`, {
+          method: "DELETE",
+        });
+
+        if (response.ok) {
+          setDiscounts(discounts.filter((d) => d._id !== item._id));
+
+          Swal.fire({
+            title: "حذف شد!",
+            text: "تخفیف با موفقیت حذف شد.",
+            icon: "success",
+            timer: 1500,
+          });
+        } else {
+          const data = await response.json();
+          Swal.fire({
+            title: "خطا",
+            text: data.message || "خطا در حذف تخفیف",
+            icon: "error",
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error deleting discount:", error);
+      Swal.fire({
+        title: "خطا در ارتباط با سرور",
+        icon: "error",
+      });
+    } finally {
+      setLoading(false);
+      setSelectedItem(null);
     }
-
-    setLoading(false);
-    setShowDeleteModal(false);
-    setSelectedItem(null);
   };
 
   const handleFilterChange = (key, value) => {

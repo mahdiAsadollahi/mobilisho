@@ -1,6 +1,10 @@
 import connectToDB from "@/configs/db";
 import { verifyAccessToken } from "@/utils/auth";
 import { cookies } from "next/headers";
+import UserModel from "@/models/User"
+import TicketModel from "@/models/Ticket"
+import TicketMessageModel from "@/models/TicketMessage"
+import mongoose from "mongoose";
 
 export async function POST(req) {
   try {
@@ -229,6 +233,7 @@ export async function POST(req) {
       userId,
     });
   } catch (err) {
+    console.log("Error ->", err.message);
     return Response.json(
       {
         message: "خطا در ساخت تیکت",

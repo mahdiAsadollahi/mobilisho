@@ -291,7 +291,6 @@ export default function TicketModal({ isOpen, onClose, onSubmit }) {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     onFocus={() => setShowCustomerSearch(true)}
-                    onBlur={() => setShowCustomerSearch(false)}
                     placeholder="جستجوی مشتری با نام یا شماره تلفن..."
                     className="w-full p-4 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     disabled={isSubmitting}

@@ -1,9 +1,9 @@
 import connectToDB from "@/configs/db";
 import { verifyAccessToken } from "@/utils/auth";
 import { cookies } from "next/headers";
-import UserModel from "@/models/User"
-import TicketModel from "@/models/Ticket"
-import TicketMessageModel from "@/models/TicketMessage"
+import UserModel from "@/models/User";
+import TicketModel from "@/models/Ticket";
+import TicketMessageModel from "@/models/TicketMessage";
 import mongoose from "mongoose";
 
 export async function POST(req) {
@@ -237,6 +237,21 @@ export async function POST(req) {
     return Response.json(
       {
         message: "خطا در ساخت تیکت",
+        error: err.message,
+      },
+      {
+        status: 500,
+      }
+    );
+  }
+}
+
+export async function GET() {
+  try {
+  } catch (err) {
+    return Response.json(
+      {
+        message: "خطا در دریافت تیکت ها",
         error: err.message,
       },
       {

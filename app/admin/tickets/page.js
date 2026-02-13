@@ -32,7 +32,6 @@ export default function SupportTickets() {
     status: "",
   });
 
-  // app/admin/support/page.js - بخش useEffect برای لود تیکت‌ها
   useEffect(() => {
     const fetchTickets = async () => {
       setLoading(true);

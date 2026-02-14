@@ -16,6 +16,7 @@ import TicketFilters from "@/app/components/TicketFilters/TicketFilters";
 import TicketList from "@/app/components/TicketList/TicketList";
 import TicketModal from "@/app/components/TicketModal/TicketModal";
 import TicketDetailsModal from "@/app/components/TicketDetailsModal/TicketDetailsModal";
+import Swal from "sweetalert2";
 
 export default function SupportTickets() {
   const [tickets, setTickets] = useState([]);
@@ -36,31 +37,24 @@ export default function SupportTickets() {
     const fetchTickets = async () => {
       setLoading(true);
       try {
-        const params = new URLSearchParams();
-        if (activeTab !== "all") {
-          if (activeTab === "archived") {
-            params.append("archived", "true");
-          } else {
-            params.append("status", activeTab);
-          }
-        }
-
-        if (filters.search) params.append("search", filters.search);
-        if (filters.category) params.append("category", filters.category);
-        if (filters.priority) params.append("priority", filters.priority);
-        if (filters.status) params.append("status", filters.status);
-
-        const response = await fetch(`/api/tickets?${params.toString()}`);
+        const response = await fetch(`/api/tickets`);
         const result = await response.json();
 
-        if (result.success) {
-          setTickets(result.data.tickets);
-          // می‌توانید stats را هم ذخیره کنید اگر نیاز دارید
+        console.log("TICKETS ->", result.data);
+
+        if (result.data) {
+          setTickets(result.data);
         } else {
-          console.error("Error fetching tickets:", result.message);
+          Swal.fire({
+            icon: "error",
+            title: "خطا در دریاقت تیکت ها",
+          });
         }
       } catch (error) {
-        console.error("Error fetching tickets:", error);
+        Swal.fire({
+          icon: "error",
+          title: "خطا در دریاقت تیکت ها",
+        });
       } finally {
         setLoading(false);
       }

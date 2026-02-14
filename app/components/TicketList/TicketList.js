@@ -103,15 +103,8 @@ export default function TicketList({
     }
   };
 
-  // تولید شماره تیکت
   const generateTicketNumber = (ticket) => {
-    // اگر ticketNumber مستقیماً وجود داشت از آن استفاده کن
-    if (ticket.ticketNumber) return ticket.ticketNumber;
-
-    // در غیر این صورت از _id برای تولید شماره استفاده کن
-    const shortId = ticket._id.slice(-6).toUpperCase();
-    const date = new Date(ticket.createdAt);
-    return `TKT-${date.getFullYear()}-${shortId}`;
+    return ticket._id.slice(-6);
   };
 
   if (tickets.length === 0) {

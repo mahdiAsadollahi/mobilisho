@@ -61,87 +61,20 @@ export default function SupportTickets() {
     };
 
     fetchTickets();
-  }, [activeTab, filters]); // وابستگی به فیلترها
+  }, [activeTab, filters]);
 
-  // در تابع handleCreateTicket در page.js این تغییرات را اعمال کنید:
   const handleCreateTicket = async (ticketData) => {
     try {
       console.log("تیکت دریافتی:", ticketData);
 
-      // اگر پاسخ API از سرور آمده باشد
       if (ticketData.apiResponse && ticketData.apiResponse.success) {
-        const apiTicket = ticketData.apiResponse.data.ticket;
-
-        console.log("داده‌های API:", apiTicket);
-
-        const newTicket = {
-          id: apiTicket.id || Math.max(...tickets.map((t) => t.id), 0) + 1,
-          ticketNumber: `TKT-${new Date().getFullYear()}-${String(
-            tickets.length + 1
-          ).padStart(4, "0")}`,
-          subject: ticketData.subject,
-          category: ticketData.category,
-          priority: ticketData.priority,
-          status: apiTicket.status || "open",
-          customer: {
-            id: ticketData.customer._id,
-            name: ticketData.customer.username,
-            email: "",
-            phone: ticketData.customer.phone,
-          },
-          assignedTo: {
-            id: 1,
-            name: "پشتیبانی فروش",
-          },
-          messages: [
-            {
-              id: 1,
-              sender: "admin",
-              senderName: "اپراتور پشتیبانی",
-              message: ticketData.message,
-              createdAt:
-                new Date().toLocaleDateString("fa-IR") +
-                " " +
-                new Date().toLocaleTimeString("fa-IR", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                }),
-              isRead: true,
-            },
-          ],
-          createdAt:
-            new Date().toLocaleDateString("fa-IR") +
-            " " +
-            new Date().toLocaleTimeString("fa-IR", {
-              hour: "2-digit",
-              minute: "2-digit",
-            }),
-          updatedAt:
-            new Date().toLocaleDateString("fa-IR") +
-            " " +
-            new Date().toLocaleTimeString("fa-IR", {
-              hour: "2-digit",
-              minute: "2-digit",
-            }),
-          lastReplyAt:
-            new Date().toLocaleDateString("fa-IR") +
-            " " +
-            new Date().toLocaleTimeString("fa-IR", {
-              hour: "2-digit",
-              minute: "2-digit",
-            }),
-          isArchived: false,
-        };
-
         console.log("تیکت جدید ایجاد شده:", newTicket);
 
         setTickets([newTicket, ...tickets]);
         setShowTicketModal(false);
 
-        // نمایش پیام موفقیت با toast یا alert بهتر
         alert("تیکت با موفقیت ایجاد شد!");
       } else {
-        // اگر apiResponse وجود نداشت یا success نبود
         console.error("پاسخ API نامعتبر:", ticketData.apiResponse);
         alert("خطا در ایجاد تیکت. لطفاً دوباره تلاش کنید.");
       }

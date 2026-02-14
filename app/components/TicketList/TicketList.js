@@ -34,9 +34,14 @@ export default function TicketList({
       },
       closed: {
         color: "bg-gray-100 text-gray-800 border-gray-200",
+        icon: FiArchive,
         text: "بسته شده",
       },
-    }[status];
+    }[status] || {
+      color: "bg-gray-100 text-gray-800 border-gray-200",
+      icon: FiClock,
+      text: status,
+    };
 
     const IconComponent = config.icon;
 
@@ -56,7 +61,10 @@ export default function TicketList({
       medium: { color: "bg-blue-100 text-blue-800", text: "متوسط" },
       high: { color: "bg-orange-100 text-orange-800", text: "بالا" },
       urgent: { color: "bg-red-100 text-red-800", text: "فوری" },
-    }[priority];
+    }[priority] || {
+      color: "bg-gray-100 text-gray-800",
+      text: priority,
+    };
 
     return (
       <span
@@ -73,8 +81,37 @@ export default function TicketList({
       financial: "مالی",
       sales: "فروش",
       general: "عمومی",
+      support: "پشتیبانی",
     };
-    return categories[category];
+    return categories[category] || category;
+  };
+
+  // تابع فرمت تاریخ
+  const formatDate = (dateString) => {
+    if (!dateString) return "-";
+    try {
+      const date = new Date(dateString);
+      return new Intl.DateTimeFormat("fa-IR", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      }).format(date);
+    } catch (error) {
+      return dateString;
+    }
+  };
+
+  // تولید شماره تیکت
+  const generateTicketNumber = (ticket) => {
+    // اگر ticketNumber مستقیماً وجود داشت از آن استفاده کن
+    if (ticket.ticketNumber) return ticket.ticketNumber;
+
+    // در غیر این صورت از _id برای تولید شماره استفاده کن
+    const shortId = ticket._id.slice(-6).toUpperCase();
+    const date = new Date(ticket.createdAt);
+    return `TKT-${date.getFullYear()}-${shortId}`;
   };
 
   if (tickets.length === 0) {
@@ -122,7 +159,7 @@ export default function TicketList({
         <tbody className="divide-y divide-gray-200">
           {tickets.map((ticket) => (
             <tr
-              key={ticket.id}
+              key={ticket._id || ticket.id}
               className={`hover:bg-gray-50 transition-colors ${
                 ticket.isArchived ? "bg-gray-50 opacity-75" : ""
               }`}
@@ -131,26 +168,26 @@ export default function TicketList({
                 <div className="flex flex-col gap-2">
                   <div className="font-medium text-gray-900 flex items-center gap-2">
                     <FiMessageSquare size={16} className="text-gray-400" />
-                    {ticket.ticketNumber}
+                    {generateTicketNumber(ticket)}
                   </div>
                   <div className="text-sm text-gray-900 font-semibold">
                     {ticket.subject}
                   </div>
                   <div className="text-xs text-gray-500">
-                    {ticket.createdAt}
+                    {formatDate(ticket.createdAt)}
                   </div>
                 </div>
               </td>
               <td className="px-6 py-4">
                 <div className="flex flex-col gap-1">
                   <div className="font-medium text-gray-900">
-                    {ticket.customer.name}
+                    {ticket.user?.username || "نامشخص"}
                   </div>
                   <div className="text-sm text-gray-600">
-                    {ticket.customer.phone}
+                    {ticket.user?.phone || "-"}
                   </div>
                   <div className="text-xs text-gray-500 truncate max-w-[150px]">
-                    {ticket.customer.email}
+                    {ticket.user?.email || "-"}
                   </div>
                 </div>
               </td>
@@ -162,7 +199,9 @@ export default function TicketList({
               <td className="px-6 py-4">{getPriorityBadge(ticket.priority)}</td>
               <td className="px-6 py-4">{getStatusBadge(ticket.status)}</td>
               <td className="px-6 py-4">
-                <div className="text-sm text-gray-600">{ticket.updatedAt}</div>
+                <div className="text-sm text-gray-600">
+                  {formatDate(ticket.updatedAt || ticket.lastActivityAt)}
+                </div>
               </td>
               <td className="px-6 py-4">
                 <div className="flex items-center gap-2">
@@ -175,7 +214,7 @@ export default function TicketList({
                   </button>
                   {!ticket.isArchived && (
                     <button
-                      onClick={() => onArchiveTicket(ticket.id)}
+                      onClick={() => onArchiveTicket(ticket._id || ticket.id)}
                       className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors border border-gray-300"
                       title="بایگانی تیکت"
                     >

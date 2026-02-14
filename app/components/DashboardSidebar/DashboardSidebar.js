@@ -2,6 +2,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useUser } from "@/app/contexts/UserContext";
 import {
   FiHome,
   FiShoppingBag,
@@ -10,6 +11,7 @@ import {
   FiLogOut,
   FiMenu,
   FiX,
+  FiStar,
 } from "react-icons/fi";
 import { useState, useEffect } from "react";
 
@@ -22,6 +24,7 @@ const menuItems = [
 
 export default function DashboardSidebar() {
   const pathname = usePathname();
+  const { userData, logout } = useUser();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -50,6 +53,22 @@ export default function DashboardSidebar() {
     }
   };
 
+  const handleLogout = async () => {
+    await logout();
+  };
+
+  // دریافت نقش به فارسی
+  const getRoleLabel = (role) => {
+    switch (role) {
+      case "ADMIN":
+        return "مدیر سیستم";
+      case "USER":
+        return "کاربر عادی";
+      default:
+        return role || "کاربر";
+    }
+  };
+
   return (
     <>
       {/* دکمه منو برای موبایل */}
@@ -70,18 +89,56 @@ export default function DashboardSidebar() {
             isMobile && !isMobileMenuOpen ? "translate-x-full" : "translate-x-0"
           }
           transition-transform duration-300 ease-in-out
-          w-64 bg-white shadow-lg border-l border-gray-200 h-screen
+          w-64 bg-white shadow-lg border-l border-gray-200 h-screen flex flex-col
         `}
       >
-        {/* Logo */}
-        <div className="p-4 md:p-6 border-b border-gray-200">
-          <h1 className="text-lg md:text-xl font-bold text-black">
+        {/* Header با اطلاعات کاربر */}
+        <div className="p-4 border-b border-gray-200">
+          <h1 className="text-lg md:text-xl font-bold text-black mb-3">
             پنل کاربری
           </h1>
+
+          {/* اطلاعات کاربر */}
+          {userData && (
+            <div className="bg-gray-50 rounded-lg p-3">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                  <FiUser className="text-blue-600 text-sm" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-black text-sm truncate">
+                    {userData.username || "کاربر"}
+                  </p>
+                  <p className="text-xs text-gray-600 truncate direction-ltr text-left">
+                    {userData.phone}
+                  </p>
+                </div>
+              </div>
+
+              {/* نقش کاربر */}
+              <div className="flex items-center gap-1 text-xs">
+                <FiStar className="text-yellow-500" size={12} />
+                <span className="text-gray-700">
+                  {getRoleLabel(userData.role)}
+                </span>
+              </div>
+
+              {/* وضعیت حساب */}
+              {userData.isBan ? (
+                <div className="mt-2 text-xs text-red-600 bg-red-50 p-1 rounded text-center">
+                  حساب کاربری مسدود است
+                </div>
+              ) : (
+                <div className="mt-2 text-xs text-green-600 bg-green-50 p-1 rounded text-center">
+                  حساب فعال
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
-        {/* Menu */}
-        <nav className="p-4">
+        {/* Menu - با flex-grow برای پر کردن فضا */}
+        <nav className="flex-1 p-4 overflow-y-auto">
           <ul className="space-y-2">
             {menuItems.map((item) => {
               const isActive = pathname === item.href;
@@ -105,7 +162,8 @@ export default function DashboardSidebar() {
           </ul>
         </nav>
 
-        <div className="absolute cursor-pointer bottom-16 right-4 left-4">
+        {/* لینک بازگشت به سایت */}
+        <div className="p-4 border-t border-gray-200">
           <Link
             href="/"
             onClick={handleLinkClick}
@@ -114,11 +172,12 @@ export default function DashboardSidebar() {
             <FiHome className="text-lg" />
             <span className="font-bold">بازگشت به سایت</span>
           </Link>
-        </div>
 
-        {/* Logout */}
-        <div className="absolute cursor-pointer bottom-4 right-4 left-4">
-          <button className="flex items-center cursor-pointer font-bold gap-3 w-full p-3 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all">
+          {/* دکمه خروج */}
+          <button
+            onClick={handleLogout}
+            className="flex items-center cursor-pointer font-bold gap-3 w-full p-3 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+          >
             <FiLogOut />
             <span>خروج از اکانت</span>
           </button>

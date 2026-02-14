@@ -1,5 +1,6 @@
 // app/dashboard/page.js
 "use client";
+import { useUser } from "@/app/contexts/UserContext";
 import {
   FiShoppingBag,
   FiHeadphones,
@@ -7,30 +8,31 @@ import {
   FiUser,
 } from "react-icons/fi";
 
-// داده‌های نمونه
-const dashboardData = {
-  orders: 12,
-  supportTickets: 5,
-  openTickets: 3,
-  userSince: "1402/08/15",
-};
-
 export default function DashboardPage() {
+  const { userData } = useUser();
+
+  // داده‌های نمونه برای نمایش
+  const stats = {
+    orders: 12,
+    supportTickets: 5,
+    openTickets: 3,
+    userSince: "1402/08/15",
+  };
+
   return (
     <div className="p-4 md:p-6">
       <h1 className="text-xl md:text-2xl font-bold text-black mb-4 md:mb-6">
-        داشبورد کاربر
+        خوش آمدید، {userData?.username || "کاربر"}
       </h1>
 
       {/* کارت‌های آمار */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
-        {/* تعداد سفارشات */}
         <div className="bg-white rounded-lg shadow p-4 md:p-6 border-r-4 border-blue-500">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600 text-xs md:text-sm">تعداد سفارشات</p>
               <p className="text-lg md:text-2xl font-bold text-black mt-1 md:mt-2">
-                {dashboardData.orders}
+                {stats.orders}
               </p>
             </div>
             <div className="bg-blue-100 p-2 md:p-3 rounded-full">
@@ -39,7 +41,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* تیکت‌های پشتیبانی */}
         <div className="bg-white rounded-lg shadow p-4 md:p-6 border-r-4 border-green-500">
           <div className="flex items-center justify-between">
             <div>
@@ -47,7 +48,7 @@ export default function DashboardPage() {
                 تیکت‌های پشتیبانی
               </p>
               <p className="text-lg md:text-2xl font-bold text-black mt-1 md:mt-2">
-                {dashboardData.supportTickets}
+                {stats.supportTickets}
               </p>
             </div>
             <div className="bg-green-100 p-2 md:p-3 rounded-full">
@@ -56,13 +57,12 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* تیکت‌های باز */}
         <div className="bg-white rounded-lg shadow p-4 md:p-6 border-r-4 border-orange-500">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600 text-xs md:text-sm">تیکت‌های باز</p>
               <p className="text-lg md:text-2xl font-bold text-black mt-1 md:mt-2">
-                {dashboardData.openTickets}
+                {stats.openTickets}
               </p>
             </div>
             <div className="bg-orange-100 p-2 md:p-3 rounded-full">
@@ -71,13 +71,12 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* تاریخ عضویت */}
         <div className="bg-white rounded-lg shadow p-4 md:p-6 border-r-4 border-purple-500">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600 text-xs md:text-sm">تاریخ عضویت</p>
               <p className="text-base md:text-lg font-bold text-black mt-1 md:mt-2">
-                {dashboardData.userSince}
+                {stats.userSince}
               </p>
             </div>
             <div className="bg-purple-100 p-2 md:p-3 rounded-full">
@@ -89,7 +88,6 @@ export default function DashboardPage() {
 
       {/* بخش اخیرا */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-        {/* آخرین سفارشات */}
         <div className="bg-white rounded-lg shadow p-4 md:p-6">
           <h3 className="text-base md:text-lg font-bold text-black mb-3 md:mb-4">
             آخرین سفارشات
@@ -110,7 +108,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* تیکت‌های اخیر */}
         <div className="bg-white rounded-lg shadow p-4 md:p-6">
           <h3 className="text-base md:text-lg font-bold text-black mb-3 md:mb-4">
             تیکت‌های اخیر

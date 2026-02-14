@@ -586,8 +586,8 @@ export default function TicketDetailsModal({
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef(null);
 
-  // Close sidebar when modal closes
   useEffect(() => {
+    console.log("TICEKT DETAILS FLAG ->", ticket);
     if (!isOpen) {
       setIsSidebarOpen(false);
       setNewMessage("");
@@ -595,24 +595,21 @@ export default function TicketDetailsModal({
     }
   }, [isOpen]);
 
-  // Fetch messages when modal opens
   useEffect(() => {
-    if (isOpen && ticket?.id) {
+    if (isOpen && ticket?._id) {
       fetchMessages();
     }
-  }, [isOpen, ticket?.id]);
+  }, [isOpen, ticket?._id]);
 
   const fetchMessages = async () => {
-    if (!ticket?.id) return;
+    if (!ticket?._id) return;
 
     try {
       setIsLoading(true);
-      const response = await fetch(`/api/tickets/${ticket.id}/messages`);
+      const response = await fetch(`/api/tickets/${ticket._id}`);
       const result = await response.json();
 
-      if (result.success) {
-        ticket.messages = result.data.messages;
-      }
+      console.log("FETCH TICKET FLAG ->", result);
     } catch (error) {
       console.error("Error fetching messages:", error);
     } finally {

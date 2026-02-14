@@ -1,5 +1,6 @@
 // app/contexts/UserContext.js
 "use client";
+import { cookies } from "next/headers";
 import { createContext, useContext, useState, useEffect } from "react";
 
 const UserContext = createContext();
@@ -14,22 +15,16 @@ export function UserProvider({ children }) {
 
   const fetchUserData = async () => {
     try {
-      setLoading(true);
-      // const response = await fetch("/api/user");
-      // const data = await response.json();
+      const cookiesStore = cookies();
+      const token = (await cookiesStore).get("token");
 
-      // داده‌های نمونه
-      const data = {
-        id: 1,
-        name: "کاربر نمونه",
-        email: "user@example.com",
-        orders: 12,
-        supportTickets: 5,
-        openTickets: 3,
-        userSince: "1402/08/15",
-        role: "user",
-        permissions: ["view_orders", "create_ticket"],
-      };
+      if (!token) {
+        redirect("/login");
+      }
+
+      setLoading(true);
+      const response = await fetch("/api/user");
+      const data = await response.json();
 
       setUserData(data);
     } catch (error) {

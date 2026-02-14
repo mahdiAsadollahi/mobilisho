@@ -248,6 +248,22 @@ export async function POST(req) {
 
 export async function GET() {
   try {
+    await connectToDB();
+
+    const tickets = await TicketModel.find({}).populate(
+      "user",
+      "username phone email role"
+    );
+
+    return Response.json(
+      {
+        message: "تیکت ها با موفقیت دریافت شدند :))",
+        data: tickets,
+      },
+      {
+        status: 200,
+      }
+    );
   } catch (err) {
     return Response.json(
       {

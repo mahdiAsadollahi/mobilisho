@@ -15,7 +15,6 @@ import {
   FiCalendar,
 } from "react-icons/fi";
 
-
 function toPersianDate(isoDate) {
   if (!isoDate) return "نامشخص";
   const date = new Date(isoDate);
@@ -78,41 +77,84 @@ export default function ProfilePage() {
   };
 
   const handleChangePassword = async () => {
-    // اعتبارسنجی
     if (!passwordData.currentPassword) {
-      alert("رمز عبور فعلی را وارد کنید");
+      Swal.fire({
+        title: "خطا",
+        text: "رمز عبور فعلی را وارد کنید",
+        icon: "error",
+        confirmButtonText: "باشه",
+      });
       return;
     }
 
-    if (passwordData.newPassword.length < 6) {
-      alert("رمز عبور جدید باید حداقل ۶ کاراکتر باشد");
+    if (passwordData.newPassword.length < 8) {
+      Swal.fire({
+        title: "خطا",
+        text: "رمز عبور جدید باید حداقل ۸ کاراکتر باشد",
+        icon: "error",
+        confirmButtonText: "باشه",
+      });
       return;
     }
 
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      alert("رمز عبور جدید با تکرار آن مطابقت ندارد");
+      Swal.fire({
+        title: "خطا",
+        text: "رمز عبور جدید با تکرار آن مطابقت ندارد",
+        icon: "error",
+        confirmButtonText: "باشه",
+      });
       return;
     }
 
     setIsLoading(true);
     try {
-      // شبیه‌سازی درخواست به سرور
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      alert("رمز عبور با موفقیت تغییر کرد");
-      setIsChangingPassword(false);
-      setPasswordData({
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
+      const response = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          currentPassword: passwordData.currentPassword,
+          newPassword: passwordData.newPassword,
+        }),
       });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        Swal.fire({
+          title: "موفقیت",
+          text: data.message,
+          icon: "success",
+          confirmButtonText: "باشه",
+        });
+        setIsChangingPassword(false);
+        setPasswordData({
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        });
+      } else {
+        Swal.fire({
+          title: "خطا",
+          text: data.message,
+          icon: "error",
+          confirmButtonText: "باشه",
+        });
+      }
     } catch (error) {
-      alert("خطا در تغییر رمز عبور");
+      Swal.fire({
+        title: "خطا",
+        text: "خطا در ارتباط با سرور",
+        icon: "error",
+        confirmButtonText: "باشه",
+      });
     } finally {
       setIsLoading(false);
     }
   };
-
   return (
     <div className="p-4 md:p-6 mx-auto max-w-7xl">
       {/* هدر صفحه */}

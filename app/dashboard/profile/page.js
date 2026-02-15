@@ -15,7 +15,7 @@ import {
   FiCalendar,
 } from "react-icons/fi";
 
-// تابع ساده تبدیل تاریخ
+
 function toPersianDate(isoDate) {
   if (!isoDate) return "نامشخص";
   const date = new Date(isoDate);

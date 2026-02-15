@@ -28,7 +28,7 @@ export async function GET(req) {
 
     const user = await UserModel.findOne(
       { phone: tokenPayload.phone },
-      "_id username phone role isBan"
+      "_id username phone role isBan createdAt"
     );
 
     if (!user) {

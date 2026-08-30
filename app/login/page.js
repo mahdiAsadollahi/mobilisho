@@ -431,7 +431,7 @@ export default function LoginPage() {
             {/* دکمه‌های اصلی */}
             <Button
               type="submit"
-              className="w-full bg-linear-to-r from-gray-800 to-gray-700 hover:from-gray-700 hover:to-gray-600 dark:from-gray-700 dark:to-gray-600 dark:hover:from-gray-600 dark:hover:to-gray-500 text-white py-3.5 rounded-xl font-bold text-lg shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:-translate-y-0.5 mt-6"
+              className="w-full bg-green-500 text-white py-3.5 rounded-xl font-bold text-lg shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:-translate-y-0.5 mt-6"
             >
               {isForgotPassword ? (
                 <FaKey className="ml-2" />

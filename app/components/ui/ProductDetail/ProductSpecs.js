@@ -96,7 +96,7 @@ const ProductSpecs = ({ product, onAddToCart, onAddToWishlist }) => {
         <div className="space-y-3">
           <button
             onClick={onAddToCart}
-            className="w-full bg-black text-white py-3 px-4 rounded-xl font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-green-500 cursor-pointer text-white py-3 px-4 rounded-xl font-medium hover:bg-green-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={!product.inStock}
           >
             افزودن به سبد خرید

@@ -62,7 +62,7 @@ const FilterPanel = ({
     <>
       {/* Backdrop با شفافیت کمتر */}
       <div
-        className={`fixed inset-0 z-40 bg-black/30 backdrop-blur-sm transition-opacity duration-300 ${
+        className={`z-50 fixed inset-0 bg-black/30 backdrop-blur-sm transition-opacity duration-300 ${
           showFilter
             ? "opacity-100 pointer-events-auto"
             : "opacity-0 pointer-events-none"

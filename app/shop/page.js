@@ -4,7 +4,7 @@
 import ProductCard from "@/app/components/ui/ProductCard/ProductCard";
 import FilterPanel from "@/app/components/ui/FilterPanel/FilterPanel";
 import { useState } from "react";
-import { FiFilter } from "react-icons/fi";
+import { FiFilter, FiChevronRight, FiChevronLeft } from "react-icons/fi";
 
 export default function ProductsPage() {
   // داده‌های نمونه برای محصولات
@@ -117,22 +117,18 @@ export default function ProductsPage() {
 
   // تنظیمات صفحه‌بندی
   const itemsPerPage = 8;
-  const totalPages = Math.ceil(products.length / itemsPerPage);
 
   // فیلتر و مرتب‌سازی محصولات
   const filteredProducts = [...products]
     .filter((product) => {
-      // فیلتر بر اساس جستجوی متنی
       if (searchQuery && !product.name.includes(searchQuery)) {
         return false;
       }
 
-      // فیلتر بر اساس محدوده قیمت
       if (product.price < priceRange[0] || product.price > priceRange[1]) {
         return false;
       }
 
-      // فیلتر بر اساس دسته‌بندی
       if (selectedCategories.length > 0) {
         const productCategory = product.name.includes("ایرپاد")
           ? "ایرپاد"
@@ -145,7 +141,6 @@ export default function ProductsPage() {
       return true;
     })
     .sort((a, b) => {
-      // مرتب‌سازی
       if (sortBy === "price-low") {
         return a.price - b.price;
       } else if (sortBy === "price-high") {
@@ -153,8 +148,11 @@ export default function ProductsPage() {
       } else if (sortBy === "rating") {
         return b.rating - a.rating;
       }
-      return 0; // مرتب‌سازی پیش‌فرض
+      return 0;
     });
+
+  // محاسبه تعداد صفحات
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
 
   // محاسبه محصولات برای صفحه جاری
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -165,57 +163,142 @@ export default function ProductsPage() {
 
   // تغییر صفحه
   const handlePageChange = (page) => {
+    if (page < 1 || page > totalPages) return;
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  // ساخت لیست صفحات برای Pagination
+  const getPaginationItems = () => {
+    const items = [];
+    const maxVisible = 5;
+
+    if (totalPages <= maxVisible + 2) {
+      // اگر تعداد صفحات کم است، همه را نمایش بده
+      for (let i = 1; i <= totalPages; i++) {
+        items.push(i);
+      }
+    } else {
+      // همیشه صفحه اول را نمایش بده
+      items.push(1);
+
+      let start = Math.max(2, currentPage - 1);
+      let end = Math.min(totalPages - 1, currentPage + 1);
+
+      // تنظیم بازه برای نزدیک شدن به ابتدا یا انتها
+      if (currentPage <= 3) {
+        start = 2;
+        end = 4;
+      } else if (currentPage >= totalPages - 2) {
+        start = totalPages - 3;
+        end = totalPages - 1;
+      }
+
+      // اضافه کردن ... در ابتدا
+      if (start > 2) {
+        items.push("ellipsis-start");
+      }
+
+      // اضافه کردن صفحات میانی
+      for (let i = start; i <= end; i++) {
+        items.push(i);
+      }
+
+      // اضافه کردن ... در انتها
+      if (end < totalPages - 1) {
+        items.push("ellipsis-end");
+      }
+
+      // همیشه صفحه آخر را نمایش بده
+      items.push(totalPages);
+    }
+
+    return items;
+  };
+
   // کامپوننت صفحه‌بندی
   const Pagination = () => {
-    const pages = [];
-
-    // نمایش حداکثر 5 صفحه
-    let startPage = Math.max(1, currentPage - 2);
-    let endPage = Math.min(totalPages, startPage + 4);
-
-    if (endPage - startPage < 4) {
-      startPage = Math.max(1, endPage - 4);
-    }
-
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(
-        <button
-          key={i}
-          onClick={() => handlePageChange(i)}
-          className={`px-3 py-1 rounded-lg transition-colors ${
-            currentPage === i
-              ? "bg-blue-600 text-white"
-              : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
-          }`}
-        >
-          {i}
-        </button>
-      );
-    }
+    const paginationItems = getPaginationItems();
 
     return (
-      <div className="flex justify-center items-center space-x-2 space-x-reverse mt-12 mb-8">
-        <button
-          onClick={() => handlePageChange(currentPage - 1)}
-          disabled={currentPage === 1}
-          className="px-3 py-1 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          قبلی
-        </button>
+      <div className="flex flex-col items-center gap-4 mt-12 mb-8">
+        {/* اطلاعات نمایش */}
+        <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+          نمایش{" "}
+          <span className="font-semibold text-gray-700 dark:text-gray-200">
+            {startIndex + 1}
+          </span>{" "}
+          تا{" "}
+          <span className="font-semibold text-gray-700 dark:text-gray-200">
+            {Math.min(startIndex + itemsPerPage, filteredProducts.length)}
+          </span>{" "}
+          از{" "}
+          <span className="font-semibold text-gray-700 dark:text-gray-200">
+            {filteredProducts.length}
+          </span>{" "}
+          محصول
+        </p>
 
-        {pages}
-
-        <button
-          onClick={() => handlePageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
-          className="px-3 py-1 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        {/* دکمه‌های صفحه‌بندی */}
+        <nav
+          className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-center"
+          aria-label="صفحه‌بندی"
         >
-          بعدی
-        </button>
+          {/* دکمه قبلی */}
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            aria-label="صفحه قبلی"
+            className="group flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 shadow-sm transition-all duration-300 ease-out hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-200 dark:hover:border-blue-800 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white dark:disabled:hover:bg-gray-800 disabled:hover:text-gray-600 dark:disabled:hover:text-gray-300 disabled:hover:border-gray-200 dark:disabled:hover:border-gray-700 disabled:hover:shadow-sm disabled:hover:translate-y-0"
+          >
+            <FiChevronRight className="w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300 group-hover:-translate-x-0.5" />
+          </button>
+
+          {/* شماره صفحات */}
+          {paginationItems.map((item, index) => {
+            if (typeof item === "string") {
+              return (
+                <span
+                  key={item}
+                  className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 text-gray-400 dark:text-gray-500 text-sm select-none"
+                >
+                  …
+                </span>
+              );
+            }
+
+            const isActive = currentPage === item;
+
+            return (
+              <button
+                key={item}
+                onClick={() => handlePageChange(item)}
+                aria-label={`صفحه ${item}`}
+                aria-current={isActive ? "page" : undefined}
+                className={`relative flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl text-sm font-medium transition-all duration-300 ease-out ${
+                  isActive
+                    ? "bg-linear-to-br from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/30 dark:shadow-blue-900/40 scale-105"
+                    : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 shadow-sm hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-200 dark:hover:border-blue-800 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
+                }`}
+              >
+                {item}
+                {isActive && (
+                  <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-white/80" />
+                )}
+              </button>
+            );
+          })}
+
+          {/* دکمه بعدی */}
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            aria-label="صفحه بعدی"
+            className="group flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 shadow-sm transition-all duration-300 ease-out hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-200 dark:hover:border-blue-800 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white dark:disabled:hover:bg-gray-800 disabled:hover:text-gray-600 dark:disabled:hover:text-gray-300 disabled:hover:border-gray-200 dark:disabled:hover:border-gray-700 disabled:hover:shadow-sm disabled:hover:translate-y-0"
+          >
+            <FiChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300 group-hover:translate-x-0.5" />
+          </button>
+        </nav>
       </div>
     );
   };
@@ -249,6 +332,18 @@ export default function ProductsPage() {
             />
           ))}
         </div>
+
+        {/* پیام خالی بودن */}
+        {filteredProducts.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="w-20 h-20 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-4">
+              <FiFilter className="w-8 h-8 text-gray-400" />
+            </div>
+            <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
+              محصولی با فیلترهای انتخاب‌شده یافت نشد
+            </p>
+          </div>
+        )}
 
         {/* صفحه‌بندی */}
         {totalPages > 1 && <Pagination />}

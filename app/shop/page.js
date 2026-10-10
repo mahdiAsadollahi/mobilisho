@@ -3,8 +3,13 @@
 // app/products/page.js
 import ProductCard from "@/app/components/ui/ProductCard/ProductCard";
 import FilterPanel from "@/app/components/ui/FilterPanel/FilterPanel";
-import { useState } from "react";
-import { FiFilter, FiChevronRight, FiChevronLeft } from "react-icons/fi";
+import { useState, useEffect, useRef } from "react";
+import {
+  FiFilter,
+  FiChevronRight,
+  FiChevronLeft,
+  FiArrowUp,
+} from "react-icons/fi";
 
 export default function ProductsPage() {
   // داده‌های نمونه برای محصولات
@@ -115,6 +120,13 @@ export default function ProductsPage() {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
 
+  // حالت‌های اسکرول
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  // ref برای گرید محصولات (برای انیمیشن ورود)
+  const gridRef = useRef(null);
+
   // تنظیمات صفحه‌بندی
   const itemsPerPage = 8;
 
@@ -161,10 +173,69 @@ export default function ProductsPage() {
     startIndex + itemsPerPage
   );
 
+  // افکت اسکرول: نمایش دکمه بازگشت به بالا + هدر چسبان
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      setShowScrollTop(scrollY > 400);
+      setIsScrolled(scrollY > 50);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // افکت انیمیشن ورود کارت‌ها با IntersectionObserver
+  useEffect(() => {
+    const grid = gridRef.current;
+    if (!grid) return;
+
+    const cards = grid.querySelectorAll("[data-animate]");
+
+    // ابتدا همه کارت‌ها مخفی
+    cards.forEach((card) => {
+      card.style.opacity = "0";
+      card.style.transform = "translateY(24px)";
+      card.style.transition =
+        "opacity 0.5s ease-out, transform 0.5s cubic-bezier(0.22, 1, 0.36, 1)";
+    });
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const card = entry.target;
+            const index = Number(card.dataset.index) || 0;
+            setTimeout(() => {
+              card.style.opacity = "1";
+              card.style.transform = "translateY(0)";
+            }, index * 60); // تأخیر پله‌ای برای هر کارت
+            observer.unobserve(card);
+          }
+        });
+      },
+      {
+        threshold: 0.1,
+        rootMargin: "0px 0px -40px 0px",
+      }
+    );
+
+    cards.forEach((card) => observer.observe(card));
+
+    return () => {
+      cards.forEach((card) => observer.unobserve(card));
+    };
+  }, [currentPage, filteredProducts.length]);
+
   // تغییر صفحه
   const handlePageChange = (page) => {
     if (page < 1 || page > totalPages) return;
     setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // اسکرول به بالا
+  const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -174,18 +245,15 @@ export default function ProductsPage() {
     const maxVisible = 5;
 
     if (totalPages <= maxVisible + 2) {
-      // اگر تعداد صفحات کم است، همه را نمایش بده
       for (let i = 1; i <= totalPages; i++) {
         items.push(i);
       }
     } else {
-      // همیشه صفحه اول را نمایش بده
       items.push(1);
 
       let start = Math.max(2, currentPage - 1);
       let end = Math.min(totalPages - 1, currentPage + 1);
 
-      // تنظیم بازه برای نزدیک شدن به ابتدا یا انتها
       if (currentPage <= 3) {
         start = 2;
         end = 4;
@@ -194,22 +262,18 @@ export default function ProductsPage() {
         end = totalPages - 1;
       }
 
-      // اضافه کردن ... در ابتدا
       if (start > 2) {
         items.push("ellipsis-start");
       }
 
-      // اضافه کردن صفحات میانی
       for (let i = start; i <= end; i++) {
         items.push(i);
       }
 
-      // اضافه کردن ... در انتها
       if (end < totalPages - 1) {
         items.push("ellipsis-end");
       }
 
-      // همیشه صفحه آخر را نمایش بده
       items.push(totalPages);
     }
 
@@ -255,7 +319,7 @@ export default function ProductsPage() {
           </button>
 
           {/* شماره صفحات */}
-          {paginationItems.map((item, index) => {
+          {paginationItems.map((item) => {
             if (typeof item === "string") {
               return (
                 <span
@@ -306,30 +370,44 @@ export default function ProductsPage() {
   return (
     <main className="w-full min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto px-2 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
-        {/* هدر صفحه */}
-        <div className="flex justify-between items-center mb-6 md:mb-8 mx-2 sm:mx-3">
-          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 dark:text-white">
-            محصولات ({filteredProducts.length} محصول)
-          </h1>
+        {/* هدر چسبان */}
+        <div
+          className={`sticky top-0 z-30 -mx-2 sm:-mx-4 md:-mx-6 lg:-mx-8 px-2 sm:px-4 md:px-6 lg:px-8 py-3 transition-all duration-300 ${
+            isScrolled
+              ? "bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg shadow-sm border-b border-gray-200/60 dark:border-gray-800/60"
+              : "bg-transparent"
+          }`}
+        >
+          <div className="flex justify-between items-center">
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 dark:text-white transition-all duration-300">
+              محصولات ({filteredProducts.length} محصول)
+            </h1>
 
-          {/* دکمه فیلتر */}
-          <button
-            onClick={() => setShowFilter(true)}
-            className="flex items-center justify-center gap-2 transition-all cursor-pointer text-xs sm:text-sm btn-outlined btn-lg rounded-xl py-2 sm:py-3 border-2 border-transparent bg-white dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600 px-3 sm:px-4 shadow-sm hover:shadow-md"
-          >
-            <span>فیلتر محصولات</span>
-            <FiFilter className="w-4 h-4 sm:w-5 sm:h-5" />
-          </button>
+            {/* دکمه فیلتر */}
+            <button
+              onClick={() => setShowFilter(true)}
+              className="group flex items-center justify-center gap-2 transition-all duration-300 cursor-pointer text-xs sm:text-sm rounded-xl py-2 sm:py-3 border-2 border-transparent bg-white dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600 px-3 sm:px-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
+            >
+              <span>فیلتر محصولات</span>
+              <FiFilter className="w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300 group-hover:rotate-12" />
+            </button>
+          </div>
         </div>
 
         {/* گرید محصولات */}
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3 md:gap-4 px-1 sm:px-2">
-          {currentProducts.map((product) => (
-            <ProductCard
+        <div
+          ref={gridRef}
+          className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3 md:gap-4 px-1 sm:px-2 mt-6 md:mt-8"
+        >
+          {currentProducts.map((product, index) => (
+            <div
               key={product.id}
-              product={product}
-              className="w-full"
-            />
+              data-animate
+              data-index={index}
+              className="will-change-transform"
+            >
+              <ProductCard product={product} className="w-full" />
+            </div>
           ))}
         </div>
 
@@ -348,6 +426,19 @@ export default function ProductsPage() {
         {/* صفحه‌بندی */}
         {totalPages > 1 && <Pagination />}
       </div>
+
+      {/* دکمه بازگشت به بالا */}
+      <button
+        onClick={scrollToTop}
+        aria-label="بازگشت به بالا"
+        className={`fixed bottom-6 left-6 z-40 flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-linear-to-br from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/30 dark:shadow-blue-900/40 transition-all duration-300 ease-out hover:shadow-xl hover:shadow-blue-500/40 hover:-translate-y-1 active:translate-y-0 active:scale-95 ${
+          showScrollTop
+            ? "opacity-100 translate-y-0 pointer-events-auto"
+            : "opacity-0 translate-y-4 pointer-events-none"
+        }`}
+      >
+        <FiArrowUp className="w-5 h-5" />
+      </button>
 
       {/* پنل فیلتر */}
       <FilterPanel

@@ -9,7 +9,7 @@ import {
 } from "react-icons/fi";
 
 export default function DashboardPage() {
-  const { userData } = useUser();
+  const { userData } = useUser({username : "Mahdi Asadolahi"});
 
   // داده‌های نمونه برای نمایش
   const stats = {
